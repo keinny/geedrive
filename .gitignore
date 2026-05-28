@@ -1,0 +1,55 @@
+# geedrive/.gitignore
+
+# Python environments
+/.venv/
+/venv/
+/env/
+geedrive-api/.venv/
+**/__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Test and coverage artifacts
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Logs and temporary files
+*.log
+*.pid
+*.tmp
+*.bak
+*.swp
+*~
+
+# Databases and local data
+*.sqlite3
+*.db
+*.db-journal
+
+# Build and packaging
+build/
+dist/
+*.egg-info/
+*.egg
+
+# IDE and editor files
+.idea/
+.vscode/
+*.iml
+*.sublime-project
+*.sublime-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
