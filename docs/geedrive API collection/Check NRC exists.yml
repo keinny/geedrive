@@ -1,0 +1,22 @@
+info:
+  name: Check NRC exists
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: http://localhost:8000/drivers/check-nrc?nrc=123456/78/1
+  headers:
+    - name: Authorization
+      value: Bearer {{FLEET_API_KEY}}
+  params:
+    - name: nrc
+      value: 123456/78/1
+      type: query
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,37 @@
+info:
+  name: Weekly log
+  type: http
+  seq: 19
+
+http:
+  method: POST
+  url: http://localhost:8000/logs
+  headers:
+    - name: Authorization
+      value: Bearer {{FLEET_API_KEY}}
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+          "car_id": "fefc18f0-1a35-495d-86ef-ffeae345b689",
+          "driver_id": "2e53c9c4-5278-49a4-84c3-205d1bbbf4f1",
+          "week_start_date": "2025-05-05",
+          "year": 2025,
+          "start_mileage": 5000.0,
+          "closing_mileage": 5450.0,
+          "total_revenue": 3200.00,
+          "shortage": 0.00,
+          "expense_on_car": 150.00,
+          "spares_bought": "Brake pads",
+          "spares_cost": 420.00,
+          "comments": "Smooth week, minor brake service done"
+        }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

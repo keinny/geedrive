@@ -1,0 +1,22 @@
+info:
+  name: Filter by Plates
+  type: http
+  seq: 6
+
+http:
+  method: GET
+  url: http://localhost:8000/cars/analytics?plate=BAA%201234
+  headers:
+    - name: Authorization
+      value: Bearer {{FLEET_API_KEY}}
+  params:
+    - name: plate
+      value: BAA%201234
+      type: query
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

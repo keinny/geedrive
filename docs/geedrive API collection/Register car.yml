@@ -1,0 +1,32 @@
+info:
+  name: Register car
+  type: http
+  seq: 10
+
+http:
+  method: POST
+  url: http://localhost:8000/cars
+  headers:
+    - name: Authorization
+      value: Bearer {{FLEET_API_KEY}}
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "plate_number": "BAB 1234",
+        "make": "Toyota",
+        "model": "Hiace",
+        "vehicle_type": "Minibus",
+        "passenger_capacity": 14,
+        "initial_mileage": 0.0,
+        "registration_date": "2024-01-15"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
