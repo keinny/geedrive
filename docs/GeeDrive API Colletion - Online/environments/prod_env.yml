@@ -1,0 +1,14 @@
+name: prod_env
+variables:
+  - name: SUPABASE_URL
+    value: https://gchxyljkchorylqaeymo.supabase.co
+  - secret: true
+    name: SUPABASE_KEY
+  - secret: true
+    name: SUPABASE_SERVICE_KEY
+  - secret: true
+    name: DATABASE_URL
+  - name: ALLOWED_ORIGIN
+    value: http://localhost:5500
+  - secret: true
+    name: FLEET_API_KEY

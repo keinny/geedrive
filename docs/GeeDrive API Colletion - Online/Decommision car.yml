@@ -1,0 +1,33 @@
+info:
+  name: Decommision car
+  type: http
+  seq: 14
+
+http:
+  method: PATCH
+  url: https://geedrive.onrender.com/cars/:car_id/decommission
+  headers:
+    - name: Authorization
+      value: Bearer {{FLEET_API_KEY}}
+    - name: Content-Type
+      value: application/json
+  params:
+    - name: car_id
+      value: 78639f4d-adc4-4e25-8ead-8bce74cdfdb8
+      type: path
+  body:
+    type: json
+    data: |-
+      {
+        "decommission_date": "2025-06-01",
+        "reason": "Engine failure beyond economic repair",
+        "final_mileage": 287450.0,
+        "total_revenue_at_decommission": 145000.00
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
