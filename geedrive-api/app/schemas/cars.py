@@ -2,7 +2,7 @@
 
 from pydantic import BaseModel, Field, field_validator
 from datetime import date, datetime
-from typing import Optional, List
+from typing import Optional
 from uuid import UUID
 from enum import Enum
 
@@ -73,7 +73,9 @@ class DecommissionRequest(BaseModel):
 class CarAnalyticsResponse(BaseModel):
     car_id: UUID
     plate_number: str
+    make: str
     model: str
+    vehicle_type: VehicleType
     status: str
     last_serviced: Optional[date]
     trip_count: int
