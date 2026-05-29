@@ -1,5 +1,5 @@
 # app/config.py
-
+from typing import List
 from pydantic import HttpUrl, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -13,13 +13,15 @@ class Settings(BaseSettings):
 
     # CORS: set to your GitHub Pages / Netlify domain in production.
     # e.g. "https://your-org.github.io"
-    ALLOWED_ORIGIN: str = "http://localhost:5500"
+    # ALLOWED_ORIGIN: str = "http://localhost:5500"
+    ALLOWED_ORIGIN: List[str] = ["http://localhost:5500", "http://localhost:8080", "http://localhost:8000", "https://geedrive.onrender.com"]
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     @field_validator("FLEET_API_KEY")
     @classmethod
     def api_key_min_length(cls, v: str) -> str:
+        v = v.strip()
         if len(v) < 32:
             raise ValueError("FLEET_API_KEY must be at least 32 characters.")
         return v
