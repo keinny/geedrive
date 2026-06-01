@@ -3,7 +3,7 @@
 # All SQL operations for the weekly_logs immutable ledger.
 
 from supabase import Client
-from app.schemas.logs import WeeklyLogCreate
+from api.schemas.logs import WeeklyLogCreate
 
 
 class LogRepository:

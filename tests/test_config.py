@@ -1,6 +1,6 @@
 import importlib
 
-import app.config as config
+import api.config as config
 
 
 def test_settings_loads_repo_root_env_file(monkeypatch):

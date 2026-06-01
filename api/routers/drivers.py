@@ -6,9 +6,9 @@ from supabase import Client
 from typing import List, Optional
 from uuid import UUID
 
-from app.database import get_supabase
-from app.repositories.driver_repo import DriverRepository
-from app.schemas.drivers import DriverCreate, DriverUpdate, DriverResponse, TerminationRequest, DriverAnalyticsResponse
+from api.database import get_supabase
+from api.repositories.driver_repo import DriverRepository
+from api.schemas.drivers import DriverCreate, DriverUpdate, DriverResponse, TerminationRequest, DriverAnalyticsResponse
 
 router = APIRouter(prefix="/drivers", tags=["Drivers"])
 

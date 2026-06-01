@@ -3,10 +3,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from supabase import Client
 
-from app.database import get_supabase
-from app.repositories.log_repo import LogRepository
-from app.schemas.logs import WeeklyLogCreate, WeeklyLogResponse
-from app import cache as app_cache
+from api.database import get_supabase
+from api.repositories.log_repo import LogRepository
+from api.schemas.logs import WeeklyLogCreate, WeeklyLogResponse
+from api import cache as app_cache
 
 router = APIRouter(prefix="/logs", tags=["Weekly Ledger Logs"])
 

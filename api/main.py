@@ -3,12 +3,12 @@
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.auth import verify_api_key
-from app.config import settings
-from app.database import get_supabase
-from app.repositories.analytics_repo import AnalyticsRepository
-from app.routers import cars, drivers, logs
-from app import cache as app_cache
+from api.auth import verify_api_key
+from api.config import settings
+from api.database import get_supabase
+from api.repositories.analytics_repo import AnalyticsRepository
+from api.routers import cars, drivers, logs
+from api import cache as app_cache
 
 # Auth is applied at the router level (not globally on FastAPI()) so that
 # the /health endpoint can remain unauthenticated for deployment platform

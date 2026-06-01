@@ -8,7 +8,7 @@ from typing import Optional
 from uuid import UUID
 from supabase import Client
 
-from app.schemas.cars import CarCreate, CarUpdate, DecommissionRequest
+from api.schemas.cars import CarCreate, CarUpdate, DecommissionRequest
 
 
 class CarRepository:

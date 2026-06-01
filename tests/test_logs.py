@@ -7,10 +7,10 @@ from unittest.mock import MagicMock
 from fastapi.testclient import TestClient
 from uuid import uuid4
 
-from app.main import app
-from app.auth import verify_api_key
-from app.routers.logs import get_log_repo
-from app.repositories.log_repo import LogRepository
+from api.main import app
+from api.auth import verify_api_key
+from api.routers.logs import get_log_repo
+from api.repositories.log_repo import LogRepository
 from contextlib import contextmanager
 
 

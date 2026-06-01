@@ -5,9 +5,9 @@ from supabase import Client
 from typing import List, Optional
 from uuid import UUID
 
-from app.database import get_supabase
-from app.repositories.car_repo import CarRepository
-from app.schemas.cars import CarCreate, CarUpdate, CarResponse, DecommissionRequest, CarAnalyticsResponse
+from api.database import get_supabase
+from api.repositories.car_repo import CarRepository
+from api.schemas.cars import CarCreate, CarUpdate, CarResponse, DecommissionRequest, CarAnalyticsResponse
 
 router = APIRouter(prefix="/cars", tags=["Cars"])
 

@@ -7,7 +7,7 @@ from typing import Optional
 from uuid import UUID
 from supabase import Client
 
-from app.schemas.drivers import DriverCreate, DriverUpdate, TerminationRequest
+from api.schemas.drivers import DriverCreate, DriverUpdate, TerminationRequest
 
 
 class DriverRepository:

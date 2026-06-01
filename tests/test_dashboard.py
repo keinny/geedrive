@@ -6,10 +6,10 @@ from contextlib import contextmanager
 from unittest.mock import MagicMock, patch
 from fastapi.testclient import TestClient
 
-from app.main import app, get_dashboard_summary
-from app.auth import verify_api_key
-from app.database import get_supabase
-from app.repositories.analytics_repo import AnalyticsRepository
+from api.main import app, get_dashboard_summary
+from api.auth import verify_api_key
+from api.database import get_supabase
+from api.repositories.analytics_repo import AnalyticsRepository
 
 
 app.dependency_overrides[verify_api_key] = lambda: "test-key"

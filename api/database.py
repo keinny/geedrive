@@ -6,7 +6,7 @@
 
 from functools import lru_cache
 from supabase import create_client, Client
-from app.config import settings
+from api.config import settings
 
 
 @lru_cache(maxsize=1)

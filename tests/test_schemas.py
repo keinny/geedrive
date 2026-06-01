@@ -7,9 +7,9 @@ import pytest
 from datetime import date, timedelta
 from uuid import uuid4
 
-from app.schemas.cars import CarCreate, CarUpdate
-from app.schemas.drivers import DriverCreate, DriverUpdate
-from app.schemas.logs import WeeklyLogCreate
+from api.schemas.cars import CarCreate, CarUpdate
+from api.schemas.drivers import DriverCreate, DriverUpdate
+from api.schemas.logs import WeeklyLogCreate
 
 FUTURE = (date.today() + timedelta(days=365)).isoformat()
 PAST   = (date.today() - timedelta(days=1)).isoformat()
