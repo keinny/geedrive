@@ -1,4 +1,4 @@
-# app/cache.py
+# api/cache.py
 #
 # Lightweight in-memory TTL cache for expensive analytics views.
 # Lives in the worker process; data is per-process (fine for single-worker

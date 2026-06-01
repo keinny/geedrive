@@ -1,4 +1,4 @@
-# app/repositories/log_repo.py
+# api/repositories/log_repo.py
 #
 # All SQL operations for the weekly_logs immutable ledger.
 

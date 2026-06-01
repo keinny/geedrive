@@ -1,4 +1,4 @@
-# app/schemas/logs.py
+# api/schemas/logs.py
 
 from pydantic import BaseModel, Field, model_validator
 from datetime import date, datetime

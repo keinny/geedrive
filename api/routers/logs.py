@@ -1,4 +1,4 @@
-# app/routers/logs.py
+# api/routers/logs.py
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from supabase import Client

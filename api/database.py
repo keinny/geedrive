@@ -1,4 +1,4 @@
-# app/database.py
+# api/database.py
 #
 # Single shared Supabase client instance.
 # get_supabase() is used as a FastAPI dependency via Depends(get_supabase).

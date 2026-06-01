@@ -1,4 +1,4 @@
-# app/repositories/analytics_repo.py
+# api/repositories/analytics_repo.py
 #
 # Read-only queries against the four analytical views.
 # Views do all aggregation — this layer just calls them.

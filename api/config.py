@@ -1,4 +1,4 @@
-# app/config.py
+# api/config.py
 from typing import List
 from pydantic import HttpUrl, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict

@@ -1,4 +1,4 @@
-# app/repositories/car_repo.py
+# api/repositories/car_repo.py
 #
 # All SQL operations touching the cars and car_decommissions tables.
 # Routers never call supabase directly — they call methods on this class.

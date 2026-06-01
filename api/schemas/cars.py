@@ -1,4 +1,4 @@
-# app/schemas/cars.py
+# api/schemas/cars.py
 
 from pydantic import BaseModel, Field, field_validator
 from datetime import date, datetime
