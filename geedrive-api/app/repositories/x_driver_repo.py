@@ -52,29 +52,6 @@ class DriverRepository:
         )
         return res.data
 
-    def get_documents_bulk(self, driver_ids: list[UUID]) -> dict[str, list[dict]]:
-        """
-        Fetches documents for multiple drivers in a single query.
-        Returns a dict keyed by driver_id string.
-        Replaces the N+1 loop in list_drivers — one query for all drivers.
-        """
-        if not driver_ids:
-            return {}
-        ids = [str(d) for d in driver_ids]
-        res = (
-            self._db.table("driver_documents")
-            .select("id, driver_id, document_type, original_filename, mime_type, uploaded_at")
-            .in_("driver_id", ids)
-            .order("uploaded_at", desc=False)
-            .execute()
-        )
-        result: dict[str, list[dict]] = {str(d): [] for d in driver_ids}
-        for doc in (res.data or []):
-            key = doc["driver_id"]
-            if key in result:
-                result[key].append(doc)
-        return result
-
     def get_analytics(self, name: Optional[str] = None) -> list[dict]:
         query = self._db.table("view_driver_analytics").select("*")
         if name:

@@ -8,7 +8,6 @@ from uuid import UUID
 from app.database import get_supabase
 from app.repositories.car_repo import CarRepository
 from app.schemas.cars import CarCreate, CarUpdate, CarResponse, DecommissionRequest, CarAnalyticsResponse
-from app import cache as app_cache
 
 router = APIRouter(prefix="/cars", tags=["Cars"])
 
@@ -43,13 +42,7 @@ def get_car_analytics(
     repo: CarRepository = Depends(get_car_repo),
 ):
     """Returns view_car_analytics. Optionally filtered by plate number."""
-    cache_key = f"car_analytics:{plate or 'all'}"
-    cached = app_cache.get(cache_key)
-    if cached is not None:
-        return cached
-    result = repo.get_analytics(plate)
-    app_cache.set(cache_key, result)
-    return result
+    return repo.get_analytics(plate)
 
 
 @router.get("/{plate_number}/last-mileage")
@@ -124,6 +117,4 @@ def decommission_car(
             detail="Car is already decommissioned.",
         )
     repo.decommission(car_id, req)
-    app_cache.invalidate_prefix("car_analytics:")
-    app_cache.invalidate("dashboard")
     return {"status": "success", "message": "Car successfully decommissioned."}

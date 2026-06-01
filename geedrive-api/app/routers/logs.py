@@ -6,6 +6,7 @@ from supabase import Client
 from app.database import get_supabase
 from app.repositories.log_repo import LogRepository
 from app.schemas.logs import WeeklyLogCreate, WeeklyLogResponse
+from app import cache as app_cache
 
 router = APIRouter(prefix="/logs", tags=["Weekly Ledger Logs"])
 
@@ -49,5 +50,8 @@ def submit_weekly_log(
             status_code=status.HTTP_409_CONFLICT,
             detail="Cannot log a trip for a terminated driver.",
         )
+    
+    app_cache.invalidate_prefix("car_analytics:")  # deletes all car analytics cache entries
+    app_cache.invalidate("dashboard")              # returns and deletes the dashboard cache entry
 
     return repo.create(log)

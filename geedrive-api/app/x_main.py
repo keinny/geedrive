@@ -8,7 +8,6 @@ from app.config import settings
 from app.database import get_supabase
 from app.repositories.analytics_repo import AnalyticsRepository
 from app.routers import cars, drivers, logs
-from app import cache as app_cache
 
 # Auth is applied at the router level (not globally on FastAPI()) so that
 # the /health endpoint can remain unauthenticated for deployment platform
@@ -47,13 +46,8 @@ app.include_router(logs.router,    dependencies=AUTH)
 @app.get("/dashboard", tags=["Dashboard"], dependencies=AUTH)
 def get_dashboard_summary(db=Depends(get_supabase)):
     """Aggregated fleet summary from view_dashboard_summary."""
-    cached = app_cache.get("dashboard")
-    if cached is not None:
-        return cached
     repo = AnalyticsRepository(db)
-    result = repo.get_dashboard()
-    app_cache.set("dashboard", result)
-    return result
+    return repo.get_dashboard()
 
 
 # ── Health check ──────────────────────────────────────────────────────────────

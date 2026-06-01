@@ -161,12 +161,9 @@ async def register_driver(
 @router.get("", response_model=List[DriverResponse])
 def list_drivers(repo: DriverRepository = Depends(get_driver_repo)):
     drivers = repo.list_all()
-    if not drivers:
-        return []
-    ids = [UUID(d["id"]) for d in drivers]
-    docs_map = repo.get_documents_bulk(ids)
+    # Attach documents to each driver for consistent response shape.
     for d in drivers:
-        d["documents"] = docs_map.get(d["id"], [])
+        d["documents"] = repo.get_documents(UUID(d["id"]))
     return drivers
 
 
