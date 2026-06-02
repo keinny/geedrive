@@ -18,5 +18,3 @@ export const _cache = {
         this.timestamps[key] = 0;
     }
 };
-
-globalThis._cache = _cache;

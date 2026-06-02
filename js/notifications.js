@@ -1,3 +1,5 @@
+import { friendlyError, showToast } from './utils.js';
+
 const _notifications = [];
 
 export function addNotification(title, message, type = 'error') {
@@ -24,7 +26,7 @@ export function renderNotifTray() {
             <div class="notif-item-header">
                 <span class="notif-item-title">${n.title}</span>
                 <span class="notif-item-ts">${n.ts}</span>
-                <button class="notif-item-dismiss" onclick="dismissNotif(${n.id})">×</button>
+                <button class="notif-item-dismiss" data-action="dismiss-notification" data-id="${n.id}">×</button>
             </div>
             <div class="notif-item-msg">${n.message}</div>
         </div>
@@ -69,6 +71,5 @@ export function notifyIfSystemError(rawMessage, title) {
         showToast(title || 'Validation Error', friendlyError(rawMessage), 'warning');
     }
 }
-
 
 

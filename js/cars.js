@@ -1,32 +1,50 @@
-import './state.js';
+import { _cache } from './cache.js';
+import { FleetAPI } from './api.js';
+import { populateCarDropdown, populateDashboardCarFilter } from './dropdowns.js';
+import { notifyIfSystemError } from './notifications.js';
+import { pagination, state, setAllCars } from './state.js';
+import {
+    friendlyError,
+    renderPagination,
+    setSubmitLoading,
+    showTableError,
+    showToast,
+} from './utils.js';
 
-document.getElementById('carPlateReg')?.addEventListener('input', function(e) {
-    const val = e.target.value.trim().toUpperCase();
-    const msg = document.getElementById('plateValidationMessage');
-    if (!val) {
-        msg.className = 'validation-message';
-        return;
-    }
-    if (val.length > 7) {
-        msg.className = 'validation-message error';
-        msg.textContent = 'Plate cannot exceed 7 characters';
-        return;
-    }
-    const isDuplicate = allCars.some(car => car.plate === val);
-    if (isDuplicate) {
-        msg.className = 'validation-message error';
-        msg.textContent = 'This plate number is already registered';
-    } else {
-        msg.className = 'validation-message success';
-        msg.textContent = 'Plate available';
-    }
-});
+let carsEventsBound = false;
+
+export function setupCars() {
+    if (carsEventsBound) return;
+    carsEventsBound = true;
+
+    document.getElementById('carPlateReg')?.addEventListener('input', function(e) {
+        const val = e.target.value.trim().toUpperCase();
+        const msg = document.getElementById('plateValidationMessage');
+        if (!val) {
+            msg.className = 'validation-message';
+            return;
+        }
+        if (val.length > 7) {
+            msg.className = 'validation-message error';
+            msg.textContent = 'Plate cannot exceed 7 characters';
+            return;
+        }
+        const isDuplicate = state.allCars.some(car => car.plate === val);
+        if (isDuplicate) {
+            msg.className = 'validation-message error';
+            msg.textContent = 'This plate number is already registered';
+        } else {
+            msg.className = 'validation-message success';
+            msg.textContent = 'Plate available';
+        }
+    });
+}
 
 
 export function loadCarsData() {
     const tbody = document.querySelector('#carsTable tbody');
     if (!_cache.isStale('cars')) {
-        _pagination.cars.page = 1;
+        pagination.cars.page = 1;
         populateCarsTable(_cache.cars);
         return Promise.resolve(_cache.cars);
     }
@@ -36,11 +54,11 @@ export function loadCarsData() {
     return FleetAPI.getEnrichedCars()
         .then(data => {
             if (data.status === 'success') {
-                allCars = data.cars;
+                setAllCars(data.cars);
                 _cache.set('cars', data.cars);
-                _pagination.cars.page = 1;
-                populateCarsTable(allCars);
-                return allCars;
+                pagination.cars.page = 1;
+                populateCarsTable(state.allCars);
+                return state.allCars;
             } else {
                 showTableError('#carsTable tbody', 9,
                     'Could not load vehicles',
@@ -79,15 +97,15 @@ export function renderHealthPill(score) {
 
     if (cars.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-secondary);">No vehicles found.</td></tr>';
-        renderPagination('cars', 0, 1, _pagination.cars.pageSize, null);
+        renderPagination('cars', 0, 1, pagination.cars.pageSize);
         return;
     }
 
     // CHANGE 8: slice to current page
-    const state = _pagination.cars;
-    state.total = cars.length;
-    const start = (state.page - 1) * state.pageSize;
-    const pageData = cars.slice(start, start + state.pageSize);
+    const pageState = pagination.cars;
+    pageState.total = cars.length;
+    const start = (pageState.page - 1) * pageState.pageSize;
+    const pageData = cars.slice(start, start + pageState.pageSize);
 
     pageData.forEach(car => {
         const row = document.createElement('tr');
@@ -111,7 +129,7 @@ export function renderHealthPill(score) {
             <td>${renderHealthPill(car.healthScore)}</td>
             <td>
                 <div class="action-buttons">
-                    <button class="btn-small btn-view" onclick="openCarDetailsModal('${car.plate}')">View</button>
+                    <button class="btn-small btn-view" data-action="open-car-details" data-plate="${car.plate}">View</button>
                 </div>
             </td>
         `;
@@ -136,7 +154,7 @@ export function renderHealthPill(score) {
     updateCarsCount();
     filterCarsTable();
     // CHANGE 8: render pagination controls
-    renderPagination('cars', _pagination.cars.total, _pagination.cars.page, _pagination.cars.pageSize, null);
+    renderPagination('cars', pagination.cars.total, pagination.cars.page, pagination.cars.pageSize);
 }
 
 export function openCarModal() {
@@ -171,7 +189,7 @@ export function submitCarRegistration() {
         return;
     }
 
-    const isDuplicate = allCars.some(car => car.plate === carPlate);
+    const isDuplicate = state.allCars.some(car => car.plate === carPlate);
     if (isDuplicate) {
         showCarModalMessage('This plate number is already registered', 'error');
         return;
@@ -278,7 +296,7 @@ export function populateCarDetailsModal(d) {
 }
 
 export function openCarDetailsModal(carPlate) {
-    currentViewCar = carPlate;
+    state.currentViewCar = carPlate;
 
     // Clear stale data immediately
     ['detailsPlateNumber','detailsModelName','detailsRevenue','detailsExpenses',
@@ -292,7 +310,7 @@ export function openCarDetailsModal(carPlate) {
     if (typeof lucide !== 'undefined') lucide.createIcons();
 
     // ── CHANGE 1: Look up from allCars cache first — no API call needed ──
-    const cached = allCars.find(c => c.plate_number === carPlate || c.plate === carPlate);
+    const cached = state.allCars.find(c => c.plate_number === carPlate || c.plate === carPlate);
     if (cached) {
         populateCarDetailsModal(cached);
         return;
@@ -311,7 +329,7 @@ export function openCarDetailsModal(carPlate) {
 
 export function closeDetailsModal() {
     document.getElementById('carDetailsModal').classList.remove('show');
-    currentViewCar = null;
+    state.currentViewCar = null;
 }
 
 // ============================================================================
@@ -331,13 +349,13 @@ export function confirmDecommissionCar() {
     const reason = document.getElementById('decommissionReason').value || 'No reason provided';
     const decommissionData = {
         action: 'decommissionCar',
-        carPlate: currentViewCar,
+        carPlate: state.currentViewCar,
         reason: reason,
         decommissionDate: new Date().toISOString()
     };
 
     // Lookup car UUID from local cache
-    const carRecord = allCars.find(c => c.plate_number === currentViewCar || c.plate === currentViewCar);
+    const carRecord = state.allCars.find(c => c.plate_number === state.currentViewCar || c.plate === state.currentViewCar);
     if (!carRecord) {
         alert('Car record not found in local cache. Please refresh the page.');
         return;
@@ -385,8 +403,8 @@ export function filterCarsTable() {
         const statusText = statusCell ? statusCell.innerText.trim() : '';
         const typeText   = typeCell   ? typeCell.innerText.trim()   : '';
         const matchesSearch = !query || text.includes(query);
-        const matchesStatus = _carsFilterStatus === 'all' || statusText.includes(_carsFilterStatus);
-        const matchesType   = _carsFilterType   === 'all' || typeText === _carsFilterType;
+        const matchesStatus = state.carsFilterStatus === 'all' || statusText.includes(state.carsFilterStatus);
+        const matchesType   = state.carsFilterType   === 'all' || typeText === state.carsFilterType;
         const show = matchesSearch && matchesStatus && matchesType;
         row.style.display = show ? '' : 'none';
         if (show) visible++;
@@ -396,9 +414,9 @@ export function filterCarsTable() {
 }
 
 export function setCarsFilter(status, el) {
-    _carsFilterStatus = status;
-    _carsFilterType   = 'all';
-    _pagination.cars.page = 1;
+    state.carsFilterStatus = status;
+    state.carsFilterType   = 'all';
+    pagination.cars.page = 1;
     document.querySelectorAll('#carsFilterDropdown .filter-dropdown-item').forEach(i => i.classList.remove('active-filter'));
     if (el) el.classList.add('active-filter');
     const badge = document.getElementById('carsFilterBadge');
@@ -408,13 +426,13 @@ export function setCarsFilter(status, el) {
 }
 
 export function setCarsTypeFilter(type, el) {
-    _carsFilterType   = type === _carsFilterType ? 'all' : type;
-    _carsFilterStatus = 'all';
-    _pagination.cars.page = 1;
+    state.carsFilterType   = type === state.carsFilterType ? 'all' : type;
+    state.carsFilterStatus = 'all';
+    pagination.cars.page = 1;
     document.querySelectorAll('#carsFilterDropdown .filter-dropdown-item').forEach(i => i.classList.remove('active-filter'));
-    if (_carsFilterType !== 'all' && el) el.classList.add('active-filter');
+    if (state.carsFilterType !== 'all' && el) el.classList.add('active-filter');
     const badge = document.getElementById('carsFilterBadge');
-    if (badge) badge.style.display = _carsFilterType !== 'all' ? 'inline-flex' : 'none';
+    if (badge) badge.style.display = state.carsFilterType !== 'all' ? 'inline-flex' : 'none';
     document.getElementById('carsFilterDropdown')?.classList.remove('open');
     filterCarsTable();
 }
@@ -433,5 +451,3 @@ export function updateCarsCount() {
     const badge = document.getElementById('carsCountBadge');
     if (badge) badge.textContent = dataRows.length + ' record' + (dataRows.length !== 1 ? 's' : '');
 }
-
-

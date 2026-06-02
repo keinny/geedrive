@@ -1,4 +1,8 @@
-import './state.js';
+import { FleetAPI } from './api.js';
+import { loadCarsData_Init, loadDriversData_Init } from './dropdowns.js';
+import { friendlyError, setSubmitLoading, showToast } from './utils.js';
+
+let weeklyLogEventsBound = false;
 
 export function initializeForm() {
     // Setup protocol warnings
@@ -11,13 +15,21 @@ export function initializeForm() {
     document.getElementById('date').value = today;
     document.getElementById('year').value = new Date().getFullYear();
 
-    // Set up active tracking event validation updates
-    document.getElementById('startMileage').addEventListener('input', calculateMileageDifference);
-    document.getElementById('closingMileage').addEventListener('input', calculateMileageDifference);
-
     // Execute asynchronous fetches for drop options initial loads
     loadDriversData_Init().catch(err => console.error('Initial drivers load failed:', err));
     loadCarsData_Init().catch(err => console.error('Initial vehicles load failed:', err));
+}
+
+export function setupWeeklyLog() {
+    if (weeklyLogEventsBound) return;
+    weeklyLogEventsBound = true;
+
+    document.getElementById('startMileage')?.addEventListener('input', calculateMileageDifference);
+    document.getElementById('closingMileage')?.addEventListener('input', calculateMileageDifference);
+    ['carPlate','driverName','startMileage','closingMileage','totalRevenue','expenseOnCar','shortage'].forEach(id => {
+        document.getElementById(id)?.addEventListener('input', updateLogSummary);
+        document.getElementById(id)?.addEventListener('change', updateLogSummary);
+    });
 }
 
 export function calculateMileageDifference() {
@@ -52,7 +64,7 @@ export function calculateMileageDifference() {
 
 // Generic Dropdown State Utilities
 
-document.getElementById('fleetForm').addEventListener('submit', function(event) {
+export function handleWeeklyLogSubmit(event) {
     event.preventDefault();
     
     const msgDiv = document.getElementById('statusMessage');
@@ -68,7 +80,7 @@ document.getElementById('fleetForm').addEventListener('submit', function(event) 
 
     setSubmitLoading('submitBtn', true);
 
-    const formData = new FormData(this);
+    const formData = new FormData(event.currentTarget);
     const dataObject = { action: 'saveLog' };
     formData.forEach((value, key) => {
         dataObject[key] = value;
@@ -91,7 +103,7 @@ document.getElementById('fleetForm').addEventListener('submit', function(event) 
         setSubmitLoading('submitBtn', false);
         showToast('Submission failed', friendlyError(error.message), 'error');
     });
-});
+}
 
 
 export function updateLogSummary() {
@@ -129,12 +141,3 @@ export function updateLogSummary() {
         </div>
     `;
 }
-
-// Hook summary updater to all relevant form inputs
-['carPlate','driverName','startMileage','closingMileage','totalRevenue','expenseOnCar','shortage'].forEach(id => {
-    document.getElementById(id)?.addEventListener('input', updateLogSummary);
-    document.getElementById(id)?.addEventListener('change', updateLogSummary);
-});
-
-
-

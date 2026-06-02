@@ -1,4 +1,8 @@
-import './state.js';
+import { loadCarsData } from './cars.js';
+import { loadDashboardData } from './dashboard.js';
+import { loadDriversData } from './drivers.js';
+import { loadCarsData_Init, loadDriversData_Init } from './dropdowns.js';
+import { resetCarsFilters, resetDriversFilters } from './state.js';
 
 export function switchTab(tabName, tabLabel) {
     document.querySelectorAll('.nav-item-btn').forEach(btn => btn.classList.remove('active'));
@@ -21,7 +25,7 @@ export function switchTab(tabName, tabLabel) {
         loadDriversData();
         const dsi = document.getElementById('driversSearchInput');
         if (dsi) dsi.value = '';
-        _driversFilterStatus = 'all';
+        resetDriversFilters();
         const dfb = document.getElementById('driversFilterBadge');
         if (dfb) dfb.style.display = 'none';
         document.querySelectorAll('#driversFilterDropdown .filter-dropdown-item')
@@ -30,7 +34,7 @@ export function switchTab(tabName, tabLabel) {
         loadCarsData();
         const csi = document.getElementById('carsSearchInput');
         if (csi) csi.value = '';
-        _carsFilterStatus = 'all'; _carsFilterType = 'all';
+        resetCarsFilters();
         const cfb = document.getElementById('carsFilterBadge');
         if (cfb) cfb.style.display = 'none';
         document.querySelectorAll('#carsFilterDropdown .filter-dropdown-item')
@@ -95,6 +99,5 @@ export function setupNavigation() {
         });
     });
 }
-
 
 

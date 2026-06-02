@@ -1,4 +1,26 @@
-import './state.js';
+import { state, setAllCars, setAllDrivers } from './state.js';
+import { _cache } from './cache.js';
+import { FleetAPI } from './api.js';
+import {
+    setDropdownError,
+    setDropdownLoading,
+    setDropdownSuccess,
+} from './utils.js';
+
+let dropdownEventsBound = false;
+
+export function setupDropdowns() {
+    if (dropdownEventsBound) return;
+    dropdownEventsBound = true;
+
+    document.getElementById('carPlate')?.addEventListener('change', function() {
+        const plate = this.value;
+        console.log('🚗 Car selected:', plate);
+        if (plate) {
+            loadLastMileage(plate);
+        }
+    });
+}
 
 // ── loadDriversData_Init ─────────────────────────────────────────────
 export function loadDriversData_Init() {
@@ -10,12 +32,12 @@ export function loadDriversData_Init() {
     return dataPromise
         .then(data => {
             if (data.status === 'success' && Array.isArray(data.drivers)) {
-                allDrivers = data.drivers;
+                setAllDrivers(data.drivers);
                 _cache.set('driversList', data.drivers);
                 _cache.set('drivers', data.drivers);
                 populateDriverDropdown();
-                setDropdownSuccess('driverName', 'driverDropdownStatus', 'retryDriverBtn', allDrivers.filter(d => d.status === 'Active').length, 'active drivers');
-                console.log('Driver dropdown populated:', allDrivers.length);
+                setDropdownSuccess('driverName', 'driverDropdownStatus', 'retryDriverBtn', state.allDrivers.filter(d => d.status === 'Active').length, 'active drivers');
+                console.log('Driver dropdown populated:', state.allDrivers.length);
             } else {
                 throw new Error('Unexpected response shape');
             }
@@ -37,12 +59,12 @@ export function loadCarsData_Init() {
     return dataPromise
         .then(data => {
             if (data.status === 'success' && Array.isArray(data.cars)) {
-                allCars = data.cars;
+                setAllCars(data.cars);
                 _cache.set('carsList', data.cars);
                 populateCarDropdown();
                 populateDashboardCarFilter();
-                setDropdownSuccess('carPlate', 'carDropdownStatus', 'retryCarBtn', allCars.filter(c => c.status !== 'Decommissioned').length, 'vehicles');
-                console.log('Car dropdown populated:', allCars.length);
+                setDropdownSuccess('carPlate', 'carDropdownStatus', 'retryCarBtn', state.allCars.filter(c => c.status !== 'Decommissioned').length, 'vehicles');
+                console.log('Car dropdown populated:', state.allCars.length);
             } else {
                 throw new Error('Unexpected response shape');
             }
@@ -68,7 +90,7 @@ export function loadCars(isRetry = false) {
     FleetAPI.getCars()
         .then(data => {
             if (data.status === 'success' && Array.isArray(data.cars)) {
-                allCars = data.cars;
+                setAllCars(data.cars);
                 _cache.set('carsList', data.cars);
                 populateCarDropdown();
                 populateDashboardCarFilter();
@@ -81,9 +103,9 @@ export function populateCarDropdown() {
     const select = document.getElementById('carPlate');
     const currentValue = select.value;
     select.innerHTML = '<option value="">-- Select Car --</option>';
-    console.log('📋 Populating car dropdown with', allCars.length, 'cars');
+    console.log('📋 Populating car dropdown with', state.allCars.length, 'cars');
     
-    allCars.forEach(car => {
+    state.allCars.forEach(car => {
         if (car.status !== 'Decommissioned') {
             const option = document.createElement('option');
             option.value = car.plate;
@@ -95,19 +117,10 @@ export function populateCarDropdown() {
     console.log('Car dropdown populated');
 }
 
-// Add event listener ONCE, not inside population function
-document.getElementById('carPlate')?.addEventListener('change', function() {
-    const plate = this.value;
-    console.log('🚗 Car selected:', plate);
-    if (plate) {
-        loadLastMileage(plate);
-    }
-});
-
 export function populateDashboardCarFilter() {
     const select = document.getElementById('dashboardCarFilter');
     select.innerHTML = '<option value="">-- All Vehicles --</option>';
-    allCars.forEach(car => {
+    state.allCars.forEach(car => {
         if (car.status !== 'Decommissioned') {
             const option = document.createElement('option');
             option.value = car.plate;
@@ -122,7 +135,7 @@ export function loadLastMileage(carPlate) {
         .then(data => {
             if (data.status === 'success' && data.lastMileage) {
                 document.getElementById('startMileage').value = data.lastMileage;
-                calculateMileageDifference();
+                document.getElementById('startMileage')?.dispatchEvent(new Event('input', { bubbles: true }));
             }
         })
         .catch(error => console.error('Error loading last odometer mileage:', error));
@@ -137,7 +150,7 @@ export function loadDrivers(isRetry = false) {
     FleetAPI.getDrivers()
         .then(data => {
             if (data.status === 'success' && Array.isArray(data.drivers)) {
-                allDrivers = data.drivers;
+                setAllDrivers(data.drivers);
                 _cache.set('driversList', data.drivers);
                 _cache.set('drivers', data.drivers);
                 populateDriverDropdown();
@@ -151,7 +164,7 @@ export function populateDriverDropdown() {
     const currentValue = select.value;
     select.innerHTML = '<option value="">-- Select Driver --</option>';
     
-    allDrivers.forEach(driver => {
+    state.allDrivers.forEach(driver => {
         if (driver.status === 'Active') {
             const option = document.createElement('option');
             option.value = driver.name;
@@ -161,5 +174,3 @@ export function populateDriverDropdown() {
     });
     if (currentValue) select.value = currentValue;
 }
-
-

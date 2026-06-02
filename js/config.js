@@ -5,7 +5,3 @@
 // ============================================================================
 export const FLEET_API_URL = 'http://127.0.0.1:8000';
 export const FLEET_API_KEY = 'fa73e76a7caf1b0346a94365d334074acfc1a15af2fdb34eb837b0e6cb0dd038';
-
-Object.defineProperty(globalThis, 'FLEET_API_URL', { get: () => FLEET_API_URL, configurable: true });
-Object.defineProperty(globalThis, 'FLEET_API_KEY', { get: () => FLEET_API_KEY, configurable: true });
-

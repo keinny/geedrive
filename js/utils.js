@@ -1,5 +1,4 @@
-import './config.js';
-import './state.js';
+import { FLEET_API_URL } from './config.js';
 
 export function friendlyError(rawMessage) {
     const m = (rawMessage || '').toLowerCase();
@@ -53,7 +52,7 @@ export function showToast(title, message, type = 'info') {
             <div class="toast-title">${title}</div>
             ${message ? `<div class="toast-message">${message}</div>` : ''}
         </div>
-        <button class="toast-close" onclick="this.closest('.toast').remove()">×</button>
+        <button class="toast-close" data-action="dismiss-toast">×</button>
     `;
 
     container.appendChild(toast);
@@ -82,7 +81,7 @@ export function showTableError(tbodySelector, colspan, heading, subtext, retryFn
                     </svg>
                     <div class="table-error-heading">${heading}</div>
                     <div class="table-error-subtext">${subtext}</div>
-                    ${retryFn ? `<button class="table-error-retry" onclick="${retryFn}()">
+                    ${retryFn ? `<button class="table-error-retry" data-action="retry-table-load" data-retry="${retryFn}">
                         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
                         Try again
                     </button>` : ''}
@@ -158,7 +157,7 @@ export function setSubmitLoading(buttonId, isLoading) {
 }
 
 
-export function renderPagination(tableKey, total, currentPage, pageSize, onPageChange) {
+export function renderPagination(tableKey, total, currentPage, pageSize) {
     const containerId = tableKey === 'cars' ? 'carsPagination' : 'driversPagination';
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -173,7 +172,7 @@ export function renderPagination(tableKey, total, currentPage, pageSize, onPageC
     function btn(label, page, isActive, isDisabled) {
         const cls = ['pg-btn', isActive ? 'active' : ''].filter(Boolean).join(' ');
         const dis = isDisabled ? 'disabled' : '';
-        return `<button class="${cls}" ${dis} onclick="(function(){_pagination['${tableKey}'].page=${page};${tableKey === 'cars' ? 'populateCarsTable(allCars)' : 'populateDriversTable(allDrivers)'};})()">${label}</button>`;
+        return `<button class="${cls}" ${dis} data-action="paginate" data-table="${tableKey}" data-page="${page}">${label}</button>`;
     }
 
     let pages = '';
@@ -194,6 +193,4 @@ export function renderPagination(tableKey, total, currentPage, pageSize, onPageC
         pages +
         btn('Next ›', currentPage + 1, false, currentPage === totalPages);
 }
-
-
 
