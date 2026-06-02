@@ -28,24 +28,26 @@ export function loadCarsData() {
     if (!_cache.isStale('cars')) {
         _pagination.cars.page = 1;
         populateCarsTable(_cache.cars);
-        return;
+        return Promise.resolve(_cache.cars);
     }
 
     tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-secondary);">Loading vehicles...</td></tr>';
 
-    FleetAPI.getEnrichedCars()
+    return FleetAPI.getEnrichedCars()
         .then(data => {
             if (data.status === 'success') {
                 allCars = data.cars;
                 _cache.set('cars', data.cars);
                 _pagination.cars.page = 1;
                 populateCarsTable(allCars);
+                return allCars;
             } else {
                 showTableError('#carsTable tbody', 9,
                     'Could not load vehicles',
                     'The server returned an unexpected response. Check the API is running correctly.',
                     'loadCarsData'
                 );
+                return [];
             }
         })
         .catch(error => {
@@ -55,6 +57,7 @@ export function loadCarsData() {
                 'loadCarsData'
             );
             notifyIfSystemError(error.message, 'Could not load vehicles');
+            throw error;
         });
 }
 
@@ -192,9 +195,16 @@ export function submitCarRegistration() {
         .then(result => {
             if (result.status === 'success') {
                 _cache.invalidate('cars');
+                _cache.invalidate('carsList');
+                _cache.invalidate('carsAnalytics');
+                _cache.invalidate('dashboard');
                 closeCarModal();
-                loadCarsData_Init().catch(() => {});
-                loadCarsData();
+                loadCarsData()
+                    .then(() => {
+                        populateCarDropdown();
+                        populateDashboardCarFilter();
+                    })
+                    .catch(() => {});
                 showToast('Vehicle registered', 'New vehicle added to the fleet.', 'success');
             } else {
                 showCarModalMessage('Registration failed: ' + (result.message || 'Please try again.'), 'error');
@@ -339,10 +349,17 @@ export function confirmDecommissionCar() {
     .then(result => {
         if (result.status === 'success') {
             _cache.invalidate('cars');
+            _cache.invalidate('carsList');
+            _cache.invalidate('carsAnalytics');
+            _cache.invalidate('dashboard');
             closeDecommissionModal();
             closeDetailsModal();
-            loadCarsData();
-            loadCarsData_Init().catch(() => {});
+            loadCarsData()
+                .then(() => {
+                    populateCarDropdown();
+                    populateDashboardCarFilter();
+                })
+                .catch(() => {});
             showToast('Vehicle decommissioned', 'The vehicle has been marked as decommissioned.', 'warning');
         }
     })
@@ -416,6 +433,5 @@ export function updateCarsCount() {
     const badge = document.getElementById('carsCountBadge');
     if (badge) badge.textContent = dataRows.length + ' record' + (dataRows.length !== 1 ? 's' : '');
 }
-
 
 

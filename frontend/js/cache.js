@@ -1,7 +1,10 @@
 export const _cache = {
     cars: null,
+    carsList: null,
     drivers: null,
+    driversList: null,
     carsAnalytics: null,
+    dashboard: null,
     TTL: 300000, // 5 minutes
     timestamps: {},
     isStale(key) {
@@ -17,4 +20,3 @@ export const _cache = {
 };
 
 globalThis._cache = _cache;
-

@@ -8,7 +8,7 @@
 import time
 from typing import Any, Optional
 
-_store: dict[str, tuple[float, Any]] = {}
+_store: dict[str, tuple[float, int, Any]] = {}
 DEFAULT_TTL = 300  # 5 minutes
 
 
@@ -16,15 +16,15 @@ def get(key: str) -> Optional[Any]:
     entry = _store.get(key)
     if entry is None:
         return None
-    ts, value = entry
-    if time.time() - ts > DEFAULT_TTL:
+    ts, ttl, value = entry
+    if time.time() - ts > ttl:
         del _store[key]
         return None
     return value
 
 
 def set(key: str, value: Any, ttl: int = DEFAULT_TTL) -> None:  # noqa: A001
-    _store[key] = (time.time(), value)
+    _store[key] = (time.time(), ttl, value)
 
 
 def invalidate(key: str) -> None:
@@ -35,3 +35,7 @@ def invalidate_prefix(prefix: str) -> None:
     keys = [k for k in _store if k.startswith(prefix)]
     for k in keys:
         del _store[k]
+
+
+def clear() -> None:
+    _store.clear()

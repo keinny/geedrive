@@ -127,7 +127,10 @@ CREATE INDEX IF NOT EXISTS idx_weekly_logs_driver_id     ON public.weekly_logs(d
 CREATE INDEX IF NOT EXISTS idx_weekly_logs_week_start    ON public.weekly_logs(week_start_date);
 CREATE INDEX IF NOT EXISTS idx_weekly_logs_year          ON public.weekly_logs(year);
 CREATE INDEX IF NOT EXISTS idx_drivers_nrc_number        ON public.drivers(nrc_number);
+CREATE INDEX IF NOT EXISTS idx_drivers_last_name         ON public.drivers(last_name);
 CREATE INDEX IF NOT EXISTS idx_cars_plate_number         ON public.cars(plate_number);
+CREATE INDEX IF NOT EXISTS idx_driver_documents_driver_uploaded_at
+    ON public.driver_documents(driver_id, uploaded_at);
 
 -- Composite index for the needs_service correlated subquery in view_car_analytics
 -- (car_id, week_start_date) covers the WHERE wl2.car_id = c.id AND wl2.week_start_date > c.last_serviced filter

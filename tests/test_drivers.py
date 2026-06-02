@@ -13,6 +13,7 @@ from datetime import date, timedelta
 
 from api.main import app
 from api.auth import verify_api_key
+from api import cache as app_cache
 from api.routers.drivers import get_driver_repo
 from api.repositories.driver_repo import DriverRepository
 from contextlib import contextmanager
@@ -106,7 +107,9 @@ def make_analytics_row(**overrides) -> dict:
 
 @pytest.fixture(autouse=True)
 def reset_overrides():
+    app_cache.clear()
     yield
+    app_cache.clear()
     if get_driver_repo in app.dependency_overrides:
         del app.dependency_overrides[get_driver_repo]
 

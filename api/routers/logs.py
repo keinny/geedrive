@@ -51,7 +51,8 @@ def submit_weekly_log(
             detail="Cannot log a trip for a terminated driver.",
         )
     
-    app_cache.invalidate_prefix("car_analytics:")  # deletes all car analytics cache entries
-    app_cache.invalidate("dashboard")              # returns and deletes the dashboard cache entry
-
-    return repo.create(log)
+    created = repo.create(log)
+    app_cache.invalidate_prefix("car_analytics:")
+    app_cache.invalidate_prefix("driver_analytics:")
+    app_cache.invalidate("dashboard")
+    return created

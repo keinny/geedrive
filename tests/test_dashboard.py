@@ -5,9 +5,11 @@
 from contextlib import contextmanager
 from unittest.mock import MagicMock, patch
 from fastapi.testclient import TestClient
+import pytest
 
 from api.main import app, get_dashboard_summary
 from api.auth import verify_api_key
+from api import cache as app_cache
 from api.database import get_supabase
 from api.repositories.analytics_repo import AnalyticsRepository
 
@@ -15,6 +17,13 @@ from api.repositories.analytics_repo import AnalyticsRepository
 app.dependency_overrides[verify_api_key] = lambda: "test-key"
 client = TestClient(app)
 HEADERS = {"Authorization": "Bearer test-key"}
+
+
+@pytest.fixture(autouse=True)
+def reset_cache():
+    app_cache.clear()
+    yield
+    app_cache.clear()
 
 
 @contextmanager
@@ -45,7 +54,7 @@ class TestDashboard:
         mock_db = MagicMock()
         app.dependency_overrides[get_supabase] = lambda: mock_db
 
-        with patch("app.main.AnalyticsRepository", return_value=mock_repo):
+        with patch("api.main.AnalyticsRepository", return_value=mock_repo):
             res = client.get("/dashboard", headers=HEADERS)
 
         del app.dependency_overrides[get_supabase]
@@ -58,7 +67,7 @@ class TestDashboard:
         mock_db = MagicMock()
         app.dependency_overrides[get_supabase] = lambda: mock_db
 
-        with patch("app.main.AnalyticsRepository", return_value=mock_repo):
+        with patch("api.main.AnalyticsRepository", return_value=mock_repo):
             res = client.get("/dashboard", headers=HEADERS)
 
         del app.dependency_overrides[get_supabase]

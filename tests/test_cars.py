@@ -12,6 +12,7 @@ from datetime import date
 
 from api.main import app
 from api.auth import verify_api_key
+from api import cache as app_cache
 from api.routers.cars import get_car_repo
 from api.repositories.car_repo import CarRepository
 
@@ -77,7 +78,9 @@ def make_analytics_row(**overrides) -> dict:
 @pytest.fixture(autouse=True)
 def reset_overrides():
     """Ensure per-test overrides are cleared after each test."""
+    app_cache.clear()
     yield
+    app_cache.clear()
     if get_car_repo in app.dependency_overrides:
         del app.dependency_overrides[get_car_repo]
 

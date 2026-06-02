@@ -13,6 +13,12 @@ from api import cache as app_cache
 router = APIRouter(prefix="/cars", tags=["Cars"])
 
 
+def invalidate_car_caches() -> None:
+    app_cache.invalidate("cars:list")
+    app_cache.invalidate_prefix("car_analytics:")
+    app_cache.invalidate("dashboard")
+
+
 def get_car_repo(db: Client = Depends(get_supabase)) -> CarRepository:
     """Dependency that injects a CarRepository bound to the shared DB client."""
     return CarRepository(db)
@@ -29,12 +35,19 @@ def register_car(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"A car with plate {car.plate_number} is already registered.",
         )
-    return repo.create(car)
+    created = repo.create(car)
+    invalidate_car_caches()
+    return created
 
 
 @router.get("", response_model=List[CarResponse])
 def list_cars(repo: CarRepository = Depends(get_car_repo)):
-    return repo.list_all()
+    cached = app_cache.get("cars:list")
+    if cached is not None:
+        return cached
+    result = repo.list_all()
+    app_cache.set("cars:list", result)
+    return result
 
 
 @router.get("/analytics", response_model=List[CarAnalyticsResponse])
@@ -103,6 +116,7 @@ def update_car(
             detail="No updatable fields provided.",
         )
     updated = repo.update(car_id, patch)
+    invalidate_car_caches()
     return updated
 
 
@@ -124,6 +138,5 @@ def decommission_car(
             detail="Car is already decommissioned.",
         )
     repo.decommission(car_id, req)
-    app_cache.invalidate_prefix("car_analytics:")
-    app_cache.invalidate("dashboard")
+    invalidate_car_caches()
     return {"status": "success", "message": "Car successfully decommissioned."}

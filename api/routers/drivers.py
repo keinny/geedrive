@@ -9,12 +9,19 @@ from uuid import UUID
 from api.database import get_supabase
 from api.repositories.driver_repo import DriverRepository
 from api.schemas.drivers import DriverCreate, DriverUpdate, DriverResponse, TerminationRequest, DriverAnalyticsResponse
+from api import cache as app_cache
 
 router = APIRouter(prefix="/drivers", tags=["Drivers"])
 
 # 10 MB hard limit on document uploads — enforced before bytes are read.
 MAX_FILE_SIZE = 10 * 1024 * 1024
 ALLOWED_MIME_TYPES = {"image/jpeg", "image/png", "application/pdf"}
+
+
+def invalidate_driver_caches() -> None:
+    app_cache.invalidate("drivers:list")
+    app_cache.invalidate_prefix("driver_analytics:")
+    app_cache.invalidate("dashboard")
 
 
 def get_driver_repo(db: Client = Depends(get_supabase)) -> DriverRepository:
@@ -155,18 +162,24 @@ async def register_driver(
     # ── Step 7: Build and return response with document metadata ──────────────
     # Fix: original returned only the driver row — frontend had no document IDs.
     driver_row["documents"] = document_rows
+    invalidate_driver_caches()
     return driver_row
 
 
 @router.get("", response_model=List[DriverResponse])
 def list_drivers(repo: DriverRepository = Depends(get_driver_repo)):
+    cached = app_cache.get("drivers:list")
+    if cached is not None:
+        return cached
     drivers = repo.list_all()
     if not drivers:
+        app_cache.set("drivers:list", [])
         return []
     ids = [UUID(d["id"]) for d in drivers]
     docs_map = repo.get_documents_bulk(ids)
     for d in drivers:
         d["documents"] = docs_map.get(d["id"], [])
+    app_cache.set("drivers:list", drivers)
     return drivers
 
 
@@ -175,7 +188,13 @@ def get_driver_analytics(
     name: Optional[str] = None,
     repo: DriverRepository = Depends(get_driver_repo),
 ):
-    return repo.get_analytics(name)
+    cache_key = f"driver_analytics:{name or 'all'}"
+    cached = app_cache.get(cache_key)
+    if cached is not None:
+        return cached
+    result = repo.get_analytics(name)
+    app_cache.set(cache_key, result)
+    return result
 
 
 @router.get("/{driver_id}/{doc_type}/signed-url")
@@ -244,6 +263,7 @@ def update_driver(
         )
     updated = repo.update(driver_id, patch)
     updated["documents"] = repo.get_documents(driver_id)
+    invalidate_driver_caches()
     return updated
 
 
@@ -265,4 +285,5 @@ def terminate_driver(
             detail="Driver is already terminated.",
         )
     repo.terminate(driver_id, req)
+    invalidate_driver_caches()
     return {"status": "success", "message": "Driver profile terminated."}

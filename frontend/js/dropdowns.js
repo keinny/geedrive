@@ -4,10 +4,14 @@ import './state.js';
 export function loadDriversData_Init() {
     setDropdownLoading('driverName', 'driverDropdownStatus', 'retryDriverBtn');
     console.log('📥 Loading drivers...');
-    return FleetAPI.getDrivers()
+    const dataPromise = !_cache.isStale('driversList') && _cache.driversList
+        ? Promise.resolve({ status: 'success', drivers: _cache.driversList })
+        : FleetAPI.getDrivers();
+    return dataPromise
         .then(data => {
             if (data.status === 'success' && Array.isArray(data.drivers)) {
                 allDrivers = data.drivers;
+                _cache.set('driversList', data.drivers);
                 _cache.set('drivers', data.drivers);
                 populateDriverDropdown();
                 setDropdownSuccess('driverName', 'driverDropdownStatus', 'retryDriverBtn', allDrivers.filter(d => d.status === 'Active').length, 'active drivers');
@@ -27,11 +31,14 @@ export function loadDriversData_Init() {
 export function loadCarsData_Init() {
     setDropdownLoading('carPlate', 'carDropdownStatus', 'retryCarBtn');
     console.log('📥 Loading vehicles...');
-    return FleetAPI.getCars()
+    const dataPromise = !_cache.isStale('carsList') && _cache.carsList
+        ? Promise.resolve({ status: 'success', cars: _cache.carsList })
+        : FleetAPI.getCars();
+    return dataPromise
         .then(data => {
             if (data.status === 'success' && Array.isArray(data.cars)) {
                 allCars = data.cars;
-                _cache.set('cars', data.cars);
+                _cache.set('carsList', data.cars);
                 populateCarDropdown();
                 populateDashboardCarFilter();
                 setDropdownSuccess('carPlate', 'carDropdownStatus', 'retryCarBtn', allCars.filter(c => c.status !== 'Decommissioned').length, 'vehicles');
@@ -62,6 +69,7 @@ export function loadCars(isRetry = false) {
         .then(data => {
             if (data.status === 'success' && Array.isArray(data.cars)) {
                 allCars = data.cars;
+                _cache.set('carsList', data.cars);
                 populateCarDropdown();
                 populateDashboardCarFilter();
             }
@@ -130,6 +138,8 @@ export function loadDrivers(isRetry = false) {
         .then(data => {
             if (data.status === 'success' && Array.isArray(data.drivers)) {
                 allDrivers = data.drivers;
+                _cache.set('driversList', data.drivers);
+                _cache.set('drivers', data.drivers);
                 populateDriverDropdown();
             }
         })
@@ -151,6 +161,5 @@ export function populateDriverDropdown() {
     });
     if (currentValue) select.value = currentValue;
 }
-
 
 
