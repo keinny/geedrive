@@ -91,24 +91,27 @@ export function loadDriversData() {
     if (!_cache.isStale('drivers')) {
         _pagination.drivers.page = 1;
         populateDriversTable(_cache.drivers);
-        return;
+        return Promise.resolve(_cache.drivers);
     }
 
     tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-secondary);">Loading drivers...</td></tr>';
 
-    FleetAPI.getDrivers()
+    return FleetAPI.getDrivers()
         .then(data => {
             if (data.status === 'success') {
                 allDrivers = data.drivers;
                 _cache.set('drivers', data.drivers);
+                _cache.set('driversList', data.drivers);
                 _pagination.drivers.page = 1;
                 populateDriversTable(allDrivers);
+                return allDrivers;
             } else {
                 showTableError('#driversTable tbody', 8,
                     'Could not load drivers',
                     'The server returned an unexpected response. Check the API is running correctly.',
                     'loadDriversData'
                 );
+                return [];
             }
         })
         .catch(error => {
@@ -118,6 +121,7 @@ export function loadDriversData() {
                 'loadDriversData'
             );
             notifyIfSystemError(error.message, 'Could not load drivers');
+            throw error;
         });
 }
 
@@ -298,9 +302,12 @@ export function submitDriverRegistration() {
     .then(result => {
         if (!result) return;
         _cache.invalidate('drivers');
+        _cache.invalidate('driversList');
+        _cache.invalidate('dashboard');
         closeDriverRegModal();
-        loadDriversData_Init().catch(() => {});
-        loadDriversData();
+        loadDriversData()
+            .then(() => populateDriverDropdown())
+            .catch(() => {});
         showToast('Driver registered', 'New driver added to the roster.', 'success');
     })
     .catch(error => {
@@ -379,8 +386,11 @@ export function confirmFireDriver() {
         setSubmitLoading('fireConfirmBtn', false);
         closeFireModal();
         _cache.invalidate('drivers');
-        loadDriversData();
-        loadDriversData_Init().catch(() => {});
+        _cache.invalidate('driversList');
+        _cache.invalidate('dashboard');
+        loadDriversData()
+            .then(() => populateDriverDropdown())
+            .catch(() => {});
         showToast('Driver terminated', `${currentFireDriver} has been removed from active duty.`, 'warning');
     })
     .catch(error => {
@@ -1356,6 +1366,5 @@ export function updateDriversCount() {
     const badge = document.getElementById('driversCountBadge');
     if (badge) badge.textContent = dataRows.length + ' record' + (dataRows.length !== 1 ? 's' : '');
 }
-
 
 

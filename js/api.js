@@ -1,5 +1,6 @@
 import { allCars, allDrivers } from './state.js';
 import { FLEET_API_URL, FLEET_API_KEY } from './config.js';
+import { _cache } from './cache.js';
 
 export const FleetAPI = {
     _headers(withBody = false) {
@@ -59,10 +60,16 @@ export const FleetAPI = {
     },
 
     async getEnrichedCars() {
-        const [carsResponse, analytics] = await Promise.all([
-            this.getCars(),
-            this._get('/cars/analytics')
-        ]);
+        const carsPromise = !_cache.isStale('carsList') && _cache.carsList
+            ? Promise.resolve({ status: 'success', cars: _cache.carsList })
+            : this.getCars();
+        const analyticsPromise = !_cache.isStale('carsAnalytics') && _cache.carsAnalytics
+            ? Promise.resolve(_cache.carsAnalytics)
+            : this._get('/cars/analytics');
+
+        const [carsResponse, analytics] = await Promise.all([carsPromise, analyticsPromise]);
+        _cache.set('carsList', carsResponse.cars);
+        _cache.set('carsAnalytics', analytics);
 
         const analyticsByPlate = new Map(
             analytics.map(item => [String(item.plate_number).toUpperCase(), item])
@@ -133,7 +140,10 @@ export const FleetAPI = {
     },
 
     async getCarsAnalytics() {
-        const data = await this._get('/cars/analytics');
+        const data = !_cache.isStale('carsAnalytics') && _cache.carsAnalytics
+            ? _cache.carsAnalytics
+            : await this._get('/cars/analytics');
+        _cache.set('carsAnalytics', data);
         return {
             status: 'success',
             carsAnalysis: data.map(c => ({
@@ -250,15 +260,27 @@ export const FleetAPI = {
         if (!body.car_id) throw new Error('Car not found in local cache — please refresh the page');
         if (!body.driver_id) throw new Error('Driver not found in local cache — please refresh the page');
         await this._post('/logs', body);
+        _cache.invalidate('dashboard');
+        _cache.invalidate('carsAnalytics');
+        _cache.invalidate('cars');
         return { status: 'success' };
     },
 
     // ── Dashboard ─────────────────────────────────────────────────────────
     async getDashboard(carFilter) {
-        const [summary, analytics] = await Promise.all([
-            this._get('/dashboard'),
-            this._get('/cars/analytics' + (carFilter ? '?plate=' + encodeURIComponent(carFilter) : ''))
-        ]);
+        const summaryPromise = !_cache.isStale('dashboard') && _cache.dashboard
+            ? Promise.resolve(_cache.dashboard)
+            : this._get('/dashboard');
+        const analyticsPromise = !_cache.isStale('carsAnalytics') && _cache.carsAnalytics
+            ? Promise.resolve(_cache.carsAnalytics)
+            : this._get('/cars/analytics');
+
+        const [summary, analytics] = await Promise.all([summaryPromise, analyticsPromise]);
+        _cache.set('dashboard', summary);
+        _cache.set('carsAnalytics', analytics);
+        const filteredAnalytics = carFilter
+            ? analytics.filter(c => String(c.plate_number).toUpperCase() === String(carFilter).toUpperCase())
+            : analytics;
         return {
             status: 'success',
             dashboard: {
@@ -267,7 +289,7 @@ export const FleetAPI = {
                 totalExpenses: summary.total_expenses,
                 netProfit: summary.total_net_profit
             },
-            carsAnalysis: analytics.map(c => ({
+            carsAnalysis: filteredAnalytics.map(c => ({
                 plate: c.plate_number,
                 revenue: c.total_revenue,
                 expenses: c.total_expenses,
