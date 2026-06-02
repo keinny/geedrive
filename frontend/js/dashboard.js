@@ -1,4 +1,7 @@
-import './state.js';
+import { FleetAPI } from './api.js';
+import { notifyIfSystemError } from './notifications.js';
+import { state } from './state.js';
+import { friendlyError, showTableError } from './utils.js';
 
 export function loadDashboardData() {
     const tableBody = document.querySelector('#dashboardComparisonTable tbody');
@@ -7,10 +10,10 @@ export function loadDashboardData() {
     FleetAPI.getDashboard()
         .then(data => {
             if (data.status === 'success') {
-                filteredWeeklyMileage = {};
+                state.filteredWeeklyMileage = {};
                 if (data.carsAnalysis && Array.isArray(data.carsAnalysis)) {
                     data.carsAnalysis.forEach(c => {
-                        filteredWeeklyMileage[c.plate] = c.weeklyMileage || 0;
+                        state.filteredWeeklyMileage[c.plate] = c.weeklyMileage || 0;
                     });
                 }
                 updateDashboardCards(data.dashboard);
@@ -87,6 +90,5 @@ export function filterDashboardByCar() {
         })
         .catch(error => console.error('Error applying dashboard filter:', error));
 }
-
 
 

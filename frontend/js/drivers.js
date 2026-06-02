@@ -1,87 +1,94 @@
-import './state.js';
+import { _cache } from './cache.js';
+import { FleetAPI } from './api.js';
+import { populateDriverDropdown } from './dropdowns.js';
+import { notifyIfSystemError } from './notifications.js';
+import { pagination, state, setAllDrivers } from './state.js';
+import {
+    friendlyError,
+    renderPagination,
+    setSubmitLoading,
+    showTableError,
+    showToast,
+} from './utils.js';
 
-document.getElementById('historicalBackfill')?.addEventListener('change', function() {
-    const group = document.getElementById('backfillDateGroup');
-    if (!group) return;
-    group.style.display = this.checked ? 'block' : 'none';
-    if (!this.checked) {
-        document.getElementById('registrationDate').value = '';
-    }
-});
+let driversEventsBound = false;
 
-document.getElementById('nrcNumber')?.addEventListener('input', function() {
-    const val = this.value.trim().toUpperCase();
-    const msg = document.getElementById('nrcValidationMessage');
-    const submitBtn = document.getElementById('driverSubmitBtn');
+export function setupDrivers() {
+    if (driversEventsBound) return;
+    driversEventsBound = true;
 
-    _nrcIsValid = false;
-    submitBtn.disabled = true;
+    document.getElementById('historicalBackfill')?.addEventListener('change', function() {
+        const group = document.getElementById('backfillDateGroup');
+        if (!group) return;
+        group.style.display = this.checked ? 'block' : 'none';
+        if (!this.checked) {
+            document.getElementById('registrationDate').value = '';
+        }
+    });
 
-    if (!val) {
-        msg.className = 'validation-message';
-        msg.textContent = '';
-        submitBtn.disabled = false;
-        return;
-    }
+    document.getElementById('nrcNumber')?.addEventListener('input', function() {
+        const val = this.value.trim().toUpperCase();
+        const msg = document.getElementById('nrcValidationMessage');
+        const submitBtn = document.getElementById('driverSubmitBtn');
 
-    msg.className = 'validation-message info';
-    msg.textContent = 'Checking NRC...';
+        state.nrcIsValid = false;
+        submitBtn.disabled = true;
 
-    clearTimeout(_nrcCheckTimer);
-    _nrcCheckTimer = setTimeout(() => {
-        FleetAPI.checkNRC(val)
-            .then(({ isDuplicate }) => {
-                if (isDuplicate) {
-                    msg.className = 'validation-message error';
-                    msg.textContent = 'This NRC number is already registered';
-                    _nrcIsValid = false;
-                    submitBtn.disabled = true;
-                } else {
-                    msg.className = 'validation-message success';
-                    msg.textContent = 'NRC available';
-                    _nrcIsValid = true;
+        if (!val) {
+            msg.className = 'validation-message';
+            msg.textContent = '';
+            submitBtn.disabled = false;
+            return;
+        }
+
+        msg.className = 'validation-message info';
+        msg.textContent = 'Checking NRC...';
+
+        clearTimeout(state.nrcCheckTimer);
+        state.nrcCheckTimer = setTimeout(() => {
+            FleetAPI.checkNRC(val)
+                .then(({ isDuplicate }) => {
+                    if (isDuplicate) {
+                        msg.className = 'validation-message error';
+                        msg.textContent = 'This NRC number is already registered';
+                        state.nrcIsValid = false;
+                        submitBtn.disabled = true;
+                    } else {
+                        msg.className = 'validation-message success';
+                        msg.textContent = 'NRC available';
+                        state.nrcIsValid = true;
+                        submitBtn.disabled = false;
+                    }
+                })
+                .catch(() => {
+                    msg.className = 'validation-message';
+                    msg.textContent = 'Could not verify — checking on submission';
+                    state.nrcIsValid = true;
                     submitBtn.disabled = false;
-                }
-            })
-            .catch(() => {
-                msg.className = 'validation-message';
-                msg.textContent = 'Could not verify — checking on submission';
-                _nrcIsValid = true;
-                submitBtn.disabled = false;
-            });
-    }, 500);
-});
+                });
+        }, 500);
+    });
 
+    bindFileSelection('nrcUpload', 'nrcFileName');
+    bindFileSelection('licenseUpload', 'licenseFileName');
+}
 
-document.getElementById('nrcUpload')?.addEventListener('change', function(e) {
-    const fileName = this.files[0]?.name || 'No file selected';
-    const fileSize = this.files[0]?.size || 0;
-    const maxSize = 5 * 1024 * 1024; // 5MB
+function bindFileSelection(inputId, labelId) {
+    document.getElementById(inputId)?.addEventListener('change', function() {
+        const fileName = this.files[0]?.name || 'No file selected';
+        const fileSize = this.files[0]?.size || 0;
+        const maxSize = 5 * 1024 * 1024;
 
-    if (fileSize > maxSize) {
-        document.getElementById('nrcFileName').className = 'file-name';
-        document.getElementById('nrcFileName').textContent = 'File too large (max 5MB)';
-        this.value = '';
-    } else {
-        document.getElementById('nrcFileName').className = 'file-name success';
-        document.getElementById('nrcFileName').textContent = fileName + ' selected';
-    }
-});
-
-document.getElementById('licenseUpload')?.addEventListener('change', function(e) {
-    const fileName = this.files[0]?.name || 'No file selected';
-    const fileSize = this.files[0]?.size || 0;
-    const maxSize = 5 * 1024 * 1024; // 5MB
-
-    if (fileSize > maxSize) {
-        document.getElementById('licenseFileName').className = 'file-name';
-        document.getElementById('licenseFileName').textContent = 'File too large (max 5MB)';
-        this.value = '';
-    } else {
-        document.getElementById('licenseFileName').className = 'file-name success';
-        document.getElementById('licenseFileName').textContent = fileName + ' selected';
-    }
-});
+        if (fileSize > maxSize) {
+            document.getElementById(labelId).className = 'file-name';
+            document.getElementById(labelId).textContent = 'File too large (max 5MB)';
+            this.value = '';
+        } else {
+            document.getElementById(labelId).className = 'file-name success';
+            document.getElementById(labelId).textContent = fileName + ' selected';
+        }
+    });
+}
 
 // fileToBase64 removed — driver documents are now uploaded as
 // multipart/form-data binary via FleetAPI.registerDriver()
@@ -89,7 +96,7 @@ document.getElementById('licenseUpload')?.addEventListener('change', function(e)
 export function loadDriversData() {
     const tbody = document.querySelector('#driversTable tbody');
     if (!_cache.isStale('drivers')) {
-        _pagination.drivers.page = 1;
+        pagination.drivers.page = 1;
         populateDriversTable(_cache.drivers);
         return Promise.resolve(_cache.drivers);
     }
@@ -99,12 +106,12 @@ export function loadDriversData() {
     return FleetAPI.getDrivers()
         .then(data => {
             if (data.status === 'success') {
-                allDrivers = data.drivers;
+                setAllDrivers(data.drivers);
                 _cache.set('drivers', data.drivers);
                 _cache.set('driversList', data.drivers);
-                _pagination.drivers.page = 1;
-                populateDriversTable(allDrivers);
-                return allDrivers;
+                pagination.drivers.page = 1;
+                populateDriversTable(state.allDrivers);
+                return state.allDrivers;
             } else {
                 showTableError('#driversTable tbody', 8,
                     'Could not load drivers',
@@ -131,15 +138,15 @@ export function populateDriversTable(drivers) {
 
     if (drivers.length === 0) {
         tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-secondary);">No drivers registered.</td></tr>';
-        renderPagination('drivers', 0, 1, _pagination.drivers.pageSize, null);
+        renderPagination('drivers', 0, 1, pagination.drivers.pageSize);
         return;
     }
 
     // CHANGE 8: slice to current page
-    const state = _pagination.drivers;
-    state.total = drivers.length;
-    const start = (state.page - 1) * state.pageSize;
-    const pageData = drivers.slice(start, start + state.pageSize);
+    const pageState = pagination.drivers;
+    pageState.total = drivers.length;
+    const start = (pageState.page - 1) * pageState.pageSize;
+    const pageData = drivers.slice(start, start + pageState.pageSize);
 
     pageData.forEach(driver => {
         const row = document.createElement('tr');
@@ -191,11 +198,11 @@ export function populateDriversTable(drivers) {
                 <div class="action-buttons">
                     ${driver.status === 'Active' ? `
                     <div class="overflow-menu-wrapper">
-                        <button class="btn-small btn-icon-only overflow-trigger" onclick="toggleOverflowMenu(this)" title="More actions">
+                        <button class="btn-small btn-icon-only overflow-trigger" data-action="toggle-overflow-menu" title="More actions">
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
                         </button>
                         <div class="overflow-menu">
-                            <button class="overflow-item overflow-item-danger" onclick="closeOverflowMenus(); openFireModal('${driver.name}', ${safetyScore}, ${driver.totalShortages || 0})">
+                            <button class="overflow-item overflow-item-danger" data-action="open-fire-modal" data-driver-name="${driver.name}" data-score="${safetyScore}" data-shortages="${driver.totalShortages || 0}">
                                 Terminate Driver
                             </button>
                         </div>
@@ -225,7 +232,7 @@ export function populateDriversTable(drivers) {
     updateDriversCount();
     filterDriversTable();
     // CHANGE 8: render pagination controls
-    renderPagination('drivers', _pagination.drivers.total, _pagination.drivers.page, _pagination.drivers.pageSize, null);
+    renderPagination('drivers', pagination.drivers.total, pagination.drivers.page, pagination.drivers.pageSize);
 }
 
 export function openDriverRegModal() {
@@ -239,7 +246,7 @@ export function openDriverRegModal() {
 export function closeDriverRegModal() {
     document.getElementById('driverRegistrationModal').classList.remove('show');
     document.getElementById('driverRegForm').reset();
-    _nrcIsValid = false;
+    state.nrcIsValid = false;
     document.getElementById('driverSubmitBtn').disabled = false;
     document.getElementById('historicalBackfill').checked = false;
     document.getElementById('backfillDateGroup').style.display = 'none';
@@ -277,7 +284,7 @@ export function submitDriverRegistration() {
         return;
     }
 
-    if (!_nrcIsValid) {
+    if (!state.nrcIsValid) {
         showDriverModalMessage('Please verify the NRC number before registering.', 'error');
         return;
     }
@@ -328,7 +335,7 @@ export function showDriverModalMessage(text, type) {
 // FIRE / TERMINATE DRIVER PROCESS
 // ============================================================================
 export function openFireModal(driverName, score, shortages) {
-    currentFireDriver = driverName;
+    state.currentFireDriver = driverName;
     document.getElementById('fireDriverModal').classList.add('show');
     document.getElementById('fireDriverName').textContent = driverName;
     document.getElementById('fireDriverPerformance').textContent = score + '%';
@@ -342,7 +349,7 @@ export function openFireModal(driverName, score, shortages) {
 
 export function closeFireModal() {
     document.getElementById('fireDriverModal').classList.remove('show');
-    currentFireDriver = null;
+    state.currentFireDriver = null;
 }
 
 export function handleTerminationReasonChange() {
@@ -367,19 +374,20 @@ export function confirmFireDriver() {
 
     const terminationData = {
         action: 'terminateDriver',
-        driverName: currentFireDriver,
+        driverName: state.currentFireDriver,
         reason: reason,
         terminationDate: new Date().toISOString()
     };
 
     // Lookup driver UUID from local cache
-    const driverRecord = allDrivers.find(d => d.name === currentFireDriver || (d.first_name + ' ' + d.last_name) === currentFireDriver);
+    const driverRecord = state.allDrivers.find(d => d.name === state.currentFireDriver || (d.first_name + ' ' + d.last_name) === state.currentFireDriver);
     if (!driverRecord) {
         alert('Driver record not found. Please refresh the page.');
         return;
     }
 
     setSubmitLoading('fireConfirmBtn', true);
+    const terminatedDriverName = state.currentFireDriver;
 
     FleetAPI.terminateDriver(driverRecord.id, reason)
     .then(result => {
@@ -391,7 +399,7 @@ export function confirmFireDriver() {
         loadDriversData()
             .then(() => populateDriverDropdown())
             .catch(() => {});
-        showToast('Driver terminated', `${currentFireDriver} has been removed from active duty.`, 'warning');
+        showToast('Driver terminated', `${terminatedDriverName} has been removed from active duty.`, 'warning');
     })
     .catch(error => {
         console.error('Error terminating driver:', error);
@@ -401,7 +409,7 @@ export function confirmFireDriver() {
 }
 
 export function printTerminationLetter() {
-    const driverName = currentFireDriver;
+    const driverName = state.currentFireDriver;
     let reason = document.getElementById('terminationReason').value;
     if (reason === 'Custom Reason') {
         reason = document.getElementById('customTerminationReason').value.trim() || 'Contractual breach rules violation';
@@ -1332,7 +1340,7 @@ export function filterDriversTable() {
         const statusCell = row.cells[5];
         const statusText = statusCell ? statusCell.innerText.trim() : '';
         const matchesSearch = !query || text.includes(query);
-        const matchesStatus = _driversFilterStatus === 'all' || statusText.includes(_driversFilterStatus);
+        const matchesStatus = state.driversFilterStatus === 'all' || statusText.includes(state.driversFilterStatus);
         const show = matchesSearch && matchesStatus;
         row.style.display = show ? '' : 'none';
         if (show) visible++;
@@ -1342,8 +1350,8 @@ export function filterDriversTable() {
 }
 
 export function setDriversFilter(status, el) {
-    _driversFilterStatus = status;
-    _pagination.drivers.page = 1;
+    state.driversFilterStatus = status;
+    pagination.drivers.page = 1;
     document.querySelectorAll('#driversFilterDropdown .filter-dropdown-item').forEach(i => i.classList.remove('active-filter'));
     if (el) el.classList.add('active-filter');
     const badge = document.getElementById('driversFilterBadge');
@@ -1366,5 +1374,3 @@ export function updateDriversCount() {
     const badge = document.getElementById('driversCountBadge');
     if (badge) badge.textContent = dataRows.length + ' record' + (dataRows.length !== 1 ? 's' : '');
 }
-
-

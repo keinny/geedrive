@@ -1,4 +1,4 @@
-import { allCars, allDrivers } from './state.js';
+import { state } from './state.js';
 import { FLEET_API_URL, FLEET_API_KEY } from './config.js';
 import { _cache } from './cache.js';
 
@@ -245,8 +245,8 @@ export const FleetAPI = {
     async saveLog(formData) {
         // formData is the raw object built from the HTML form fields
         const body = {
-            car_id: allCars.find(c => c.plate_number === formData.carPlate || c.plate === formData.carPlate)?.id,
-            driver_id: allDrivers.find(d => (d.first_name + ' ' + d.last_name) === formData.driverName || d.name === formData.driverName)?.id,
+            car_id: state.allCars.find(c => c.plate_number === formData.carPlate || c.plate === formData.carPlate)?.id,
+            driver_id: state.allDrivers.find(d => (d.first_name + ' ' + d.last_name) === formData.driverName || d.name === formData.driverName)?.id,
             week_start_date: formData.date,
             year: parseInt(formData.year),
             start_mileage: parseFloat(formData.startMileage),
@@ -301,5 +301,3 @@ export const FleetAPI = {
         };
     }
 };
-
-globalThis.FleetAPI = FleetAPI;

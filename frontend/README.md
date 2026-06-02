@@ -25,27 +25,19 @@ Do not open `index.html` with `file://`; the app shows the existing file-protoco
 - `js/main.js` keeps the existing `lucide.createIcons()` boot behavior.
 - The API client points to `http://127.0.0.1:8000` and uses the existing hardcoded `FLEET_API_KEY` from the original file.
 
-## Module Scope And Window Compatibility
+## Module Scope
 
-The original file used inline HTML handlers and global variables. The refactor keeps those handlers compatible by attaching exported module functions to `window` in `js/main.js`.
+The frontend is organized as ES modules with explicit imports between concerns:
 
-Shared state is defined in `js/state.js` and exposed through `globalThis` accessors so existing names such as `allCars`, `allDrivers`, `_pagination`, `currentFireDriver`, and `currentViewCar` keep working across modules and inline handlers.
+- `js/api.js` owns backend transport and response mapping.
+- `js/state.js` owns shared frontend state and pagination.
+- `js/cache.js` owns short-lived client cache entries.
+- Feature modules such as `cars.js`, `drivers.js`, `dashboard.js`, `dropdowns.js`, and `weekly-log.js` own their feature behavior.
+- `js/events.js` owns DOM event delegation for user actions.
+- `js/main.js` is the composition root that wires setup functions and starts the app.
 
-## Inline Handlers
+No module publishes application functions or state onto `window`/`globalThis`.
 
-Inline handlers remain in the HTML and generated table/modal markup for existing commands such as modal open/close actions, filters, pagination buttons, notification dismissal, overflow menus, dashboard filtering, car details, driver termination, and retry buttons.
+## Event Wiring
 
-## Window Exports
-
-`js/main.js` attaches the exported functions from these modules to `window`:
-
-- `utils.js`
-- `notifications.js`
-- `dropdowns.js`
-- `cars.js`
-- `drivers.js`
-- `dashboard.js`
-- `weekly-log.js`
-- `navigation.js`
-
-This preserves compatibility for existing `onclick`, `oninput`, `onchange`, and generated HTML strings without renaming the original functions.
+HTML and generated markup use `data-action` attributes rather than inline JavaScript handlers. `js/events.js` translates those action names into imported feature functions, which keeps markup, event wiring, feature logic, API calls, and shared state separate.
