@@ -81,6 +81,43 @@ def inject(repo: MagicMock):
 
 # ── POST /logs — Submit ───────────────────────────────────────────────────────
 
+class TestListLogs:
+    def test_returns_log_entries_newest_first(self):
+        rows = [
+            {
+                "id": str(uuid4()),
+                "created_at": "2025-01-08T10:00:00+00:00",
+                "driver_name": "Jane Driver",
+                "car": "Toyota Hiace",
+                "plate_number": "ABC1234",
+            },
+            {
+                "id": str(uuid4()),
+                "created_at": "2025-01-06T10:00:00+00:00",
+                "driver_name": "John Driver",
+                "car": "Nissan Caravan",
+                "plate_number": "XYZ9876",
+            },
+        ]
+        repo = mock_repo(list_entries=rows)
+        inject(repo)
+
+        res = client.get("/logs", headers=HEADERS)
+
+        assert res.status_code == 200
+        assert res.json()[0]["driver_name"] == "Jane Driver"
+        repo.list_entries.assert_called_once_with()
+
+    def test_returns_empty_list(self):
+        repo = mock_repo(list_entries=[])
+        inject(repo)
+
+        res = client.get("/logs", headers=HEADERS)
+
+        assert res.status_code == 200
+        assert res.json() == []
+
+
 class TestSubmitLog:
     def test_success_returns_201(self):
         repo = mock_repo(

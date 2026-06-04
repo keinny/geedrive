@@ -129,12 +129,24 @@ export const FleetAPI = {
         return { status: 'success' };
     },
 
-    async decommissionCar(carId, reason) {
+    async updateCar(carId, payload) {
+        const body = {
+            make: payload.make,
+            model: payload.model,
+            vehicle_type: payload.vehicleType,
+            passenger_capacity: parseInt(payload.capacity, 10),
+            last_serviced: payload.lastServiced || null
+        };
+        await this._patch('/cars/' + carId, body);
+        return { status: 'success' };
+    },
+
+    async decommissionCar(carId, payload) {
         await this._patch('/cars/' + carId + '/decommission', {
             decommission_date: new Date().toISOString().split('T')[0],
-            reason: reason,
-            final_mileage: 0,
-            total_revenue_at_decommission: 0
+            reason: payload.reason,
+            final_mileage: parseFloat(payload.finalMileage),
+            total_revenue_at_decommission: parseFloat(payload.totalRevenueAtDecommission) || 0
         });
         return { status: 'success' };
     },
@@ -160,21 +172,38 @@ export const FleetAPI = {
 
     // ── Drivers ───────────────────────────────────────────────────────────
     async getDrivers() {
-        const drivers = await this._get('/drivers');
+        const [drivers, analytics] = await Promise.all([
+            this._get('/drivers'),
+            this._get('/drivers/analytics').catch(() => [])
+        ]);
+        const analyticsById = new Map(analytics.map(d => [String(d.driver_id), d]));
+        const analyticsByNrc = new Map(analytics.map(d => [String(d.nrc_number || '').toUpperCase(), d]));
         return {
             status: 'success',
             drivers: drivers.map(d => ({
                 ...d,
-                name: d.first_name + ' ' + d.last_name,
-                nrcNumber: d.nrc_number,
-                licenseNumber: d.license_number,
-                licenseExpiry: d.license_expiry,
-                licenseStatus: d.license_status ?? 'valid',
-                performanceScore: null,
-                totalShortages: 0,
-                status: d.status === 'active' ? 'Active' : 'Inactive',
-                nrcFileUrl: null,
-                licenseFileUrl: null
+                ...(() => {
+                    const stats = analyticsById.get(String(d.id)) || analyticsByNrc.get(String(d.nrc_number || '').toUpperCase()) || {};
+                    const docs = Array.isArray(d.documents) ? d.documents : [];
+                    return {
+                        name: d.first_name + ' ' + d.last_name,
+                        nrcNumber: d.nrc_number,
+                        licenseNumber: d.license_number,
+                        licenseExpiry: d.license_expiry,
+                        licenseStatus: d.license_status ?? 'valid',
+                        documents: docs,
+                        hasNrcDocument: docs.some(doc => doc.document_type === 'nrc'),
+                        hasLicenseDocument: docs.some(doc => doc.document_type === 'license'),
+                        performanceScore: stats.performance_score ?? null,
+                        totalShortages: stats.total_shortage ?? 0,
+                        shortagesCount: stats.shortages_count ?? 0,
+                        tripCount: stats.trip_count ?? 0,
+                        totalRevenue: stats.total_revenue ?? 0,
+                        avgRevenue: stats.avg_revenue ?? 0,
+                        expenseRatio: stats.expense_ratio ?? 0,
+                        status: d.status === 'active' ? 'Active' : 'Inactive',
+                    };
+                })()
             }))
         };
     },
@@ -217,6 +246,23 @@ export const FleetAPI = {
         return { status: 'success' };
     },
 
+    async updateDriver(driverId, payload) {
+        const body = {
+            first_name: payload.firstName,
+            last_name: payload.lastName,
+            email: payload.email,
+            phone: payload.phone,
+            license_number: payload.licenseNumber,
+            license_expiry: payload.licenseExpiry,
+            next_of_kin_name: payload.nextOfKinName,
+            next_of_kin_relationship: payload.nextOfKinRelationship,
+            next_of_kin_phone: payload.nextOfKinPhone,
+            next_of_kin_email: payload.nextOfKinEmail || null
+        };
+        await this._patch('/drivers/' + driverId, body);
+        return { status: 'success' };
+    },
+
     async checkNRC(nrc) {
         const data = await this._get('/drivers/check-nrc?nrc=' + encodeURIComponent(nrc));
         return { isDuplicate: data.exists };
@@ -242,6 +288,20 @@ export const FleetAPI = {
     },
 
     // ── Logs ──────────────────────────────────────────────────────────────
+    async getLogs() {
+        const logs = await this._get('/logs');
+        return {
+            status: 'success',
+            logs: logs.map(log => ({
+                id: log.id,
+                createdAt: log.created_at,
+                driverName: log.driver_name,
+                car: log.car,
+                plateNumber: log.plate_number
+            }))
+        };
+    },
+
     async saveLog(formData) {
         // formData is the raw object built from the HTML form fields
         const body = {
@@ -254,7 +314,8 @@ export const FleetAPI = {
             total_revenue: parseFloat(formData.totalRevenue) || 0,
             shortage: parseFloat(formData.shortage) || 0,
             expense_on_car: parseFloat(formData.expenseOnCar) || 0,
-            spares_cost: 0,
+            spares_bought: formData.sparesBought || null,
+            spares_cost: parseFloat(formData.sparesCost) || 0,
             comments: formData.comments || null
         };
         if (!body.car_id) throw new Error('Car not found in local cache — please refresh the page');
@@ -263,6 +324,7 @@ export const FleetAPI = {
         _cache.invalidate('dashboard');
         _cache.invalidate('carsAnalytics');
         _cache.invalidate('cars');
+        _cache.invalidate('logs');
         return { status: 'success' };
     },
 

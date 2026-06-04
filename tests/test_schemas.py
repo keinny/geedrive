@@ -110,7 +110,7 @@ class TestDriverCreate:
             "email": "john@example.com",
             "phone": "+260971000001",
             "nrc_number": "123456/78/1",
-            "license_number": "DR12345",
+            "license_number": "12345678",
             "license_expiry": FUTURE,
             "next_of_kin_name": "Mary Banda",
             "next_of_kin_relationship": "Spouse",

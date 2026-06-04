@@ -1,16 +1,19 @@
 import {
     closeCarModal,
+    closeCarEditModal,
     closeDecommissionModal,
     closeDetailsModal,
     confirmDecommissionCar,
     filterCarsTable,
     loadCarsData,
     openCarDetailsModal,
+    openCarEditModal,
     openCarModal,
     openDecommissionModal,
     populateCarsTable,
     setCarsFilter,
     setCarsTypeFilter,
+    submitCarEdit,
     submitCarRegistration,
     toggleCarsFilter,
 } from './cars.js';
@@ -21,30 +24,42 @@ import {
     toggleNotifTray,
 } from './notifications.js';
 import {
+    closeDriverEditModal,
     closeDriverRegModal,
     closeFireModal,
     confirmFireDriver,
     filterDriversTable,
     handleTerminationReasonChange,
     loadDriversData,
+    openDriverDocument,
+    openDriverEditModal,
     openDriverRegModal,
     openFireModal,
     populateDriversTable,
     printTerminationLetter,
     setDriversFilter,
+    submitDriverEdit,
     submitDriverRegistration,
     toggleDriversFilter,
 } from './drivers.js';
 import { filterDashboardByCar, loadDashboardData } from './dashboard.js';
 import { loadCars, loadDrivers } from './dropdowns.js';
 import { closeMobileSidebar, closeOverflowMenus, toggleOverflowMenu } from './navigation.js';
-import { handleWeeklyLogSubmit } from './weekly-log.js';
+import { showToast } from './utils.js';
+import {
+    closeWeeklyLogModal,
+    handleWeeklyLogSubmit,
+    loadWeeklyLogs,
+    openWeeklyLogModal,
+    populateLogsTable,
+} from './weekly-log.js';
 import { pagination, state } from './state.js';
 
 const tableRetries = {
     loadCarsData,
     loadDriversData,
     loadDashboardData,
+    loadWeeklyLogs,
 };
 
 let appEventsBound = false;
@@ -62,9 +77,17 @@ export function setupAppEvents() {
         event.preventDefault();
         submitCarRegistration();
     });
+    document.getElementById('carEditForm')?.addEventListener('submit', event => {
+        event.preventDefault();
+        submitCarEdit();
+    });
     document.getElementById('driverRegForm')?.addEventListener('submit', event => {
         event.preventDefault();
         submitDriverRegistration();
+    });
+    document.getElementById('driverEditForm')?.addEventListener('submit', event => {
+        event.preventDefault();
+        submitDriverEdit();
     });
 }
 
@@ -96,6 +119,7 @@ function handleDocumentClick(event) {
         pagination[table].page = page;
         if (table === 'cars') populateCarsTable(state.allCars);
         if (table === 'drivers') populateDriversTable(state.allDrivers);
+        if (table === 'logs') populateLogsTable(state.allLogs);
         return;
     }
 
@@ -111,11 +135,16 @@ function handleDocumentClick(event) {
         'close-notifications': closeNotifTray,
         'retry-cars-dropdown': () => loadCars(true),
         'retry-drivers-dropdown': () => loadDrivers(true),
+        'open-weekly-log-modal': openWeeklyLogModal,
+        'close-weekly-log-modal': closeWeeklyLogModal,
+        'view-log-entry': () => showToast('Log entry', 'Detailed log view is ready for future expansion.', 'info'),
         'toggle-cars-filter': () => toggleCarsFilter(event),
         'filter-cars-status': () => setCarsFilter(target.dataset.status, target),
         'filter-cars-type': () => setCarsTypeFilter(target.dataset.type, target),
         'open-car-modal': openCarModal,
         'close-car-modal': closeCarModal,
+        'open-car-edit-modal': () => openCarEditModal(target.dataset.carId),
+        'close-car-edit-modal': closeCarEditModal,
         'open-car-details': () => openCarDetailsModal(target.dataset.plate),
         'close-car-details': closeDetailsModal,
         'open-decommission-modal': () => openDecommissionModal(state.currentViewCar),
@@ -125,6 +154,9 @@ function handleDocumentClick(event) {
         'filter-drivers-status': () => setDriversFilter(target.dataset.status, target),
         'open-driver-modal': openDriverRegModal,
         'close-driver-modal': closeDriverRegModal,
+        'open-driver-edit-modal': () => openDriverEditModal(target.dataset.driverId),
+        'close-driver-edit-modal': closeDriverEditModal,
+        'open-driver-document': () => openDriverDocument(target.dataset.driverId, target.dataset.docType),
         'close-fire-modal': closeFireModal,
         'print-termination-letter': printTerminationLetter,
         'confirm-fire-driver': confirmFireDriver,

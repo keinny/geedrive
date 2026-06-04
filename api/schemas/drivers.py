@@ -1,10 +1,50 @@
 # api/schemas/drivers.py
-
-from pydantic import BaseModel, Field, EmailStr, field_validator
+from typing import Annotated, Union
+from pydantic import BaseModel, Field, EmailStr, field_validator, BeforeValidator
 from datetime import date, datetime
 from typing import Optional, List
 from uuid import UUID
+from pydantic_extra_types.phone_numbers import PhoneNumberValidator
+import phonenumbers
 
+
+# --- CLEANING FUNCTIONS ---
+def clean_nrc(v: str) -> str:
+    """Removes spaces, replaces hyphens/dots with slashes, and checks format."""
+    if not isinstance(v, str):
+        raise ValueError("NRC must be a text string")
+    # Clean up common user typos (e.g., '123456-11-1' or '123456 11 1')
+    cleaned = v.replace(" ", "").replace("-", "/").replace(".", "/")
+    return cleaned
+
+def clean_license(v: str) -> str:
+    """Removes spaces and hyphens from the license number."""
+    if not isinstance(v, str):
+        raise ValueError("Driver's license must be a text string")
+    return v.replace(" ", "").replace("-", "")
+
+
+# --- CUSTOM PYDANTIC TYPES ---
+# Regex breakdown for NRC: 6 digits, a slash, 2 digits, a slash, and a number between 1 and 3.
+ZambianNRC = Annotated[
+    str,
+    BeforeValidator(clean_nrc),
+    Field(pattern=r"^\d{6}/[1-9]\d/[1-3]$", examples=["123456/11/1"])
+]
+
+# Regex breakdown for RTSA License: Exactly 8 digits.
+ZambianDriversLicense = Annotated[
+    str,
+    BeforeValidator(clean_license),
+    Field(pattern=r"^\d{8}$", examples=["10293847"])
+]
+
+# Create a reusable Type that parses globally but defaults to Zambia ('ZM') 
+# It strictly outputs clean, database-ready E.164 strings (+260...)
+ZambianE164Phone = Annotated[
+    Union[str, phonenumbers.PhoneNumber], 
+    PhoneNumberValidator(default_region="ZM", number_format="E164")
+]
 
 # ── Document sub-schema ───────────────────────────────────────────────────────
 
@@ -26,26 +66,19 @@ class DriverBase(BaseModel):
     first_name: str = Field(..., max_length=100)
     last_name: str = Field(..., max_length=100)
     email: EmailStr
-    phone: str = Field(..., max_length=30)
-    nrc_number: str = Field(..., max_length=50)
-    license_number: str = Field(..., max_length=50)
+    phone: ZambianE164Phone
+    nrc_number: ZambianNRC
+    license_number: ZambianDriversLicense
     license_expiry: date
     next_of_kin_name: str = Field(..., max_length=200)
     next_of_kin_relationship: str = Field(..., max_length=50)
-    next_of_kin_phone: str = Field(..., max_length=30)
+    next_of_kin_phone: ZambianE164Phone
     next_of_kin_email: Optional[EmailStr] = None
     registration_date: date
 
 
 class DriverCreate(DriverBase):
-    @field_validator("nrc_number")
-    @classmethod
-    def normalize_nrc(cls, v: str) -> str:
-        """Strip whitespace and uppercase so duplicate detection is consistent.
-        e.g. '123456/78/9', ' 123456/78/9', '123456/78/9 ' all resolve to the
-        same value before the uniqueness check runs."""
-        return v.strip().upper()
-
+    
     @field_validator("license_expiry")
     @classmethod
     def validate_future_expiry(cls, v: date) -> date:

@@ -91,6 +91,17 @@ export function showTableError(tbodySelector, colspan, heading, subtext, retryFn
     `;
 }
 
+export function showTableSkeleton(tbodySelector, columns, rows = 5) {
+    const tbody = document.querySelector(tbodySelector);
+    if (!tbody) return;
+    const rowHtml = Array.from({ length: rows }, () => `
+        <tr class="skeleton-row" aria-hidden="true">
+            ${Array.from({ length: columns }, () => '<td><span class="table-skeleton"></span></td>').join('')}
+        </tr>
+    `).join('');
+    tbody.innerHTML = rowHtml;
+}
+
 // ============================================================================
 // SIDEBAR NAVIGATION & TAB SWITCHING
 // ============================================================================
@@ -158,7 +169,12 @@ export function setSubmitLoading(buttonId, isLoading) {
 
 
 export function renderPagination(tableKey, total, currentPage, pageSize) {
-    const containerId = tableKey === 'cars' ? 'carsPagination' : 'driversPagination';
+    const containerIds = {
+        cars: 'carsPagination',
+        drivers: 'driversPagination',
+        logs: 'logsPagination',
+    };
+    const containerId = containerIds[tableKey];
     const container = document.getElementById(containerId);
     if (!container) return;
 
@@ -193,4 +209,3 @@ export function renderPagination(tableKey, total, currentPage, pageSize) {
         pages +
         btn('Next ›', currentPage + 1, false, currentPage === totalPages);
 }
-

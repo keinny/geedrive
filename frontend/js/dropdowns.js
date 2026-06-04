@@ -131,14 +131,44 @@ export function populateDashboardCarFilter() {
 }
 
 export function loadLastMileage(carPlate) {
+    const startInput = document.getElementById('startMileage');
+    const hint = document.getElementById('startMileageHint');
+    const selectedCar = state.allCars.find(car => car.plate === carPlate || car.plate_number === carPlate);
+    if (hint) {
+        hint.className = 'form-note';
+        hint.textContent = 'Fetching the latest mileage for this vehicle...';
+    }
+
+    const applyMileage = (value, message, type = '') => {
+        if (value !== null && value !== undefined && value !== '') {
+            startInput.value = value;
+            startInput.dispatchEvent(new Event('input', { bubbles: true }));
+            startInput.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        if (hint) {
+            hint.className = ['form-note', type].filter(Boolean).join(' ');
+            hint.textContent = message;
+        }
+    };
+
     FleetAPI.getLastMileage(carPlate)
         .then(data => {
-            if (data.status === 'success' && data.lastMileage) {
-                document.getElementById('startMileage').value = data.lastMileage;
-                document.getElementById('startMileage')?.dispatchEvent(new Event('input', { bubbles: true }));
+            if (data.status === 'success' && data.lastMileage !== null && data.lastMileage !== undefined) {
+                applyMileage(data.lastMileage, 'Start mileage auto-filled from the latest vehicle record.', 'success');
+            } else if (selectedCar?.initial_mileage !== undefined || selectedCar?.initialMileage !== undefined) {
+                applyMileage(selectedCar.initial_mileage ?? selectedCar.initialMileage, 'No previous logs found; using this vehicle\'s initial mileage.', 'info');
+            } else {
+                applyMileage('', 'No previous mileage found. Enter the start mileage manually.', 'info');
             }
         })
-        .catch(error => console.error('Error loading last odometer mileage:', error));
+        .catch(error => {
+            console.error('Error loading last odometer mileage:', error);
+            if (selectedCar?.initial_mileage !== undefined || selectedCar?.initialMileage !== undefined) {
+                applyMileage(selectedCar.initial_mileage ?? selectedCar.initialMileage, 'Could not fetch latest mileage; using the vehicle\'s initial mileage.', 'info');
+                return;
+            }
+            applyMileage('', 'Could not fetch latest mileage. Enter the start mileage manually.', 'error');
+        });
 }
 
 

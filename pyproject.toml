@@ -13,5 +13,6 @@ dependencies = [
     "python-multipart>=0.0.29",
     "pytest>=9.0.3",
     "httpx>=0.28.1",
+    "pydantic-extra-types[phonenumbers]>=2.11.1",
 ]
 

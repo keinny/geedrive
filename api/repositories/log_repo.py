@@ -46,3 +46,38 @@ class LogRepository:
             .execute()
         )
         return res.data[0]
+
+    def list_entries(self) -> list[dict]:
+        """
+        Returns weekly log display rows newest first, including the joined
+        vehicle and driver labels needed by the frontend table.
+        """
+        res = (
+            self._db.table("weekly_logs")
+            .select(
+                "id, created_at, "
+                "drivers(first_name, last_name), "
+                "cars(make, model, plate_number)"
+            )
+            .order("created_at", desc=True)
+            .execute()
+        )
+
+        rows: list[dict] = []
+        for row in res.data or []:
+            driver = row.get("drivers") or {}
+            car = row.get("cars") or {}
+            driver_name = " ".join(
+                part for part in [driver.get("first_name"), driver.get("last_name")] if part
+            ).strip()
+            car_name = " ".join(
+                part for part in [car.get("make"), car.get("model")] if part
+            ).strip()
+            rows.append({
+                "id": row["id"],
+                "created_at": row["created_at"],
+                "driver_name": driver_name or "Unknown driver",
+                "car": car_name or "Unknown vehicle",
+                "plate_number": car.get("plate_number") or "N/A",
+            })
+        return rows

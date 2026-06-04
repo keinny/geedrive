@@ -5,7 +5,9 @@ from supabase import Client
 
 from api.database import get_supabase
 from api.repositories.log_repo import LogRepository
-from api.schemas.logs import WeeklyLogCreate, WeeklyLogResponse
+from typing import List
+
+from api.schemas.logs import WeeklyLogCreate, WeeklyLogListEntry, WeeklyLogResponse
 from api import cache as app_cache
 
 router = APIRouter(prefix="/logs", tags=["Weekly Ledger Logs"])
@@ -56,3 +58,9 @@ def submit_weekly_log(
     app_cache.invalidate_prefix("driver_analytics:")
     app_cache.invalidate("dashboard")
     return created
+
+
+@router.get("", response_model=List[WeeklyLogListEntry])
+def list_weekly_logs(repo: LogRepository = Depends(get_log_repo)):
+    """Returns weekly log table entries, newest first."""
+    return repo.list_entries()

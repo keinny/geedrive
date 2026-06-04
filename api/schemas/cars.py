@@ -1,10 +1,30 @@
 # api/schemas/cars.py
-
-from pydantic import BaseModel, Field, field_validator
+import re
+from typing import Annotated,  Optional
+from pydantic import BaseModel, Field, field_validator, BeforeValidator
 from datetime import date, datetime
-from typing import Optional
 from uuid import UUID
 from enum import Enum
+
+
+# --- SANITIZATION & NORMALIZATION FUNCTIONS ---
+def clean_vehicle_plate(v: str) -> str:
+    if not isinstance(v, str):
+        raise ValueError("Vehicle plate must be text string format")
+    # Convert to uppercase, remove hyphens, and reduce multiple spaces to a single clean space
+    cleaned = v.upper().replace("-", " ").strip()
+    return re.sub(r"\s+", " ", cleaned)
+
+
+# --- STRONGLY-TYPED PYDANTIC TYPES ---
+# Reusable types validating against the precise Zambian patterns
+
+ZambianVehiclePlate = Annotated[
+    str,
+    BeforeValidator(clean_vehicle_plate),
+    # Accepts patterns with or without a middle space (e.g., 'BCA 1234' or 'BCA1234')
+    Field(pattern=r"^[A-Z]{1,3}\s?\d{1,4}$", examples=["BCA 1234", "CAG 987"])
+]
 
 
 class VehicleType(str, Enum):
@@ -20,7 +40,7 @@ class VehicleType(str, Enum):
 
 
 class CarBase(BaseModel):
-    plate_number: str = Field(..., max_length=20)
+    plate_number: ZambianVehiclePlate
     make: str = Field(..., max_length=100)
     model: str = Field(..., max_length=100)
     vehicle_type: VehicleType
@@ -33,9 +53,10 @@ class CarBase(BaseModel):
 class CarCreate(CarBase):
     @field_validator("plate_number")
     @classmethod
-    def normalize_plate(cls, v: str) -> str:
-        """Normalise to uppercase and strip whitespace before DB insert."""
-        return v.strip().upper()
+    def reject_reserved_plates(cls, v: str) -> str:
+        if v.startswith("GRZ"):
+            raise ValueError("Government vehicles cannot be registered")
+        return v
 
 
 # CarResponse is intentionally NOT a subclass of CarCreate.

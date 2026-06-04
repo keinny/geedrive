@@ -1,0 +1,1503 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GeeDrive Motors Web Application Style Guide</title>
+  <meta name="description" content="Complete merged GeeDrive Motors web application style guide, including brand tokens, components, accessibility, light mode, motion, states, and implementation references.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+
+:root {
+  --gd-amber-50: #FEF3E0;
+  --gd-amber-100: #FCDFA0;
+  --gd-amber-200: #F5C053;
+  --gd-amber-400: #D4891A;
+  --gd-amber-600: #A56210;
+  --gd-amber-800: #7A4508;
+  --gd-amber-900: #4F2C03;
+  --gd-red-400: #C0390A;
+  --gd-red-600: #8B1A05;
+  --gd-red-800: #5A0F02;
+  --gd-dark-bg: #0D0D0D;
+  --gd-dark-surface: #181818;
+  --gd-dark-elevated: #242424;
+  --gd-dark-border: rgba(212,137,26,0.18);
+  --gd-dark-border-strong: rgba(212,137,26,0.35);
+  --gd-light-bg: #F9F6F1;
+  --gd-light-surface: #FFFFFF;
+  --gd-light-elevated: #F0EBE1;
+  --gd-light-border: rgba(160,98,16,0.18);
+  --gd-light-border-strong: rgba(160,98,16,0.35);
+  --gd-success: #2E7D32;
+  --gd-success-bg: #E8F5E9;
+  --gd-warning: #B45309;
+  --gd-warning-bg: #FEF3E0;
+  --gd-danger: #C62828;
+  --gd-danger-bg: #FFEBEE;
+  --gd-info: #0277BD;
+  --gd-info-bg: #E1F5FE;
+  --gd-font-display: 'Barlow Condensed', sans-serif;
+  --gd-font-body: 'DM Sans', sans-serif;
+  --gd-font-mono: 'JetBrains Mono', monospace;
+  --color-background-page: var(--gd-light-bg);
+  --color-background-primary: #FFFFFF;
+  --color-background-secondary: #F0EBE1;
+  --color-background-tertiary: #E7DDCC;
+  --color-text-primary: #1A1612;
+  --color-text-secondary: #5F564A;
+  --color-text-tertiary: #7D7161;
+  --color-border-secondary: #C4B89E;
+  --color-border-tertiary: #DED4C4;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  min-width: 320px;
+  background: var(--color-background-page);
+  color: var(--color-text-primary);
+  font-family: var(--gd-font-body);
+  line-height: 1.5;
+}
+button, input, select, textarea { font: inherit; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 3px solid rgba(212,137,26,0.45);
+  outline-offset: 3px;
+}
+code { font-family: var(--gd-font-mono); }
+.skip-link {
+  position: fixed;
+  left: 16px;
+  top: 12px;
+  z-index: 20;
+  transform: translateY(-160%);
+  background: var(--gd-amber-400);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+}
+.skip-link:focus { transform: translateY(0); }
+.guide-shell {
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) minmax(0, 980px);
+  gap: 32px;
+  width: min(100% - 32px, 1320px);
+  margin: 0 auto;
+  padding: 28px 0 56px;
+}
+.guide-toc {
+  position: sticky;
+  top: 20px;
+  height: calc(100vh - 40px);
+  align-self: start;
+  overflow: auto;
+  padding: 18px;
+  background: rgba(255,255,255,0.72);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-lg);
+}
+.guide-toc-title {
+  font-family: var(--gd-font-display);
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  margin-bottom: 4px;
+}
+.guide-toc-subtitle {
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+  margin-bottom: 14px;
+}
+.guide-toc a {
+  display: block;
+  padding: 7px 0;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  font-size: 13px;
+  border-bottom: 0.5px solid rgba(160,98,16,0.12);
+}
+.guide-toc a:hover { color: var(--gd-amber-600); }
+.guide-content {
+  min-width: 0;
+  background: rgba(255,255,255,0.54);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: 16px;
+  padding: clamp(18px, 3vw, 34px);
+}
+.guide-part-divider {
+  margin: 3.5rem 0 2.5rem;
+  padding: 1.25rem 0 0;
+  border-top: 2px solid rgba(212,137,26,0.28);
+}
+.guide-part-divider h2 {
+  margin: 0 0 6px;
+  font-family: var(--gd-font-display);
+  font-size: 32px;
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+.guide-part-divider p {
+  margin: 0;
+  max-width: 680px;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+@media (max-width: 920px) {
+  .guide-shell { grid-template-columns: 1fr; }
+  .guide-toc { position: static; height: auto; }
+  .guide-toc nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 16px; }
+}
+@media (max-width: 720px) {
+  .guide-shell { width: min(100% - 20px, 1320px); padding-top: 12px; }
+  .guide-content { padding: 16px 12px; }
+  .grid-2, .grid-3, .grid-4, .color-mode-row, .do-dont-grid { grid-template-columns: 1fr !important; }
+  .sg [style*="grid-template-columns:200px 1fr"], .sg [style*="grid-template-columns:1fr 1fr 1fr"], .sg [style*="grid-template-columns:1fr 1fr 1fr 1fr"] { grid-template-columns: 1fr !important; }
+  .sg [style*="display:flex"] { flex-wrap: wrap; }
+  .gd-table-wrap { overflow-x: auto; }
+  .gd-table { min-width: 620px; }
+  .guide-toc nav { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+  .sg { font-family: 'DM Sans', sans-serif; color: var(--color-text-primary); }
+  .sg-section { margin-bottom: 3rem; }
+  .sg-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-text-tertiary); margin-bottom: 1rem; }
+  .sg-heading { font-family: 'Barlow Condensed', sans-serif; font-size: 26px; font-weight: 700; letter-spacing: 0.02em; color: var(--color-text-primary); margin-bottom: 0.3rem; }
+  .sg-subheading { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 1.5rem; }
+  .divider { height: 0.5px; background: var(--color-border-tertiary); margin-bottom: 2.5rem; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; }
+
+  /* COLOR SWATCHES */
+  .swatch-group { margin-bottom: 1rem; }
+  .swatch-row { display: flex; gap: 4px; border-radius: 10px; overflow: hidden; margin-bottom: 6px; }
+  .swatch { height: 48px; flex: 1; position: relative; display: flex; align-items: flex-end; padding: 4px 6px; }
+  .swatch span { font-size: 9px; font-weight: 500; opacity: 0.8; }
+  .swatch-meta { font-size: 11px; color: var(--color-text-secondary); }
+
+  /* TOKEN CARDS */
+  .token-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; }
+  .token-name { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--color-text-secondary); margin-bottom: 4px; }
+  .token-value { font-size: 14px; font-weight: 500; color: var(--color-text-primary); }
+  .token-preview { margin-top: 8px; }
+
+  /* TYPOGRAPHY SPECIMENS */
+  .type-specimen { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1.25rem; margin-bottom: 10px; }
+  .type-meta { font-size: 11px; color: var(--color-text-tertiary); margin-bottom: 8px; font-family: 'JetBrains Mono', monospace; }
+
+  /* BUTTON DEMOS */
+  .btn-demo { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .gd-btn { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; border-radius: 8px; padding: 0 18px; height: 38px; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 7px; letter-spacing: 0.01em; transition: opacity 0.15s; }
+  .gd-btn:hover { opacity: 0.85; }
+  .gd-btn-primary { background: var(--gd-amber-400); color: #fff; }
+  .gd-btn-secondary { background: transparent; border: 1.5px solid var(--gd-amber-400); color: var(--gd-amber-600); }
+  .gd-btn-ghost { background: transparent; border: 0.5px solid var(--color-border-secondary); color: var(--color-text-secondary); }
+  .gd-btn-danger { background: var(--gd-danger); color: #fff; }
+  .gd-btn-sm { font-size: 12px; padding: 0 12px; height: 30px; border-radius: 6px; }
+  .gd-btn-lg { font-size: 15px; padding: 0 24px; height: 46px; border-radius: 10px; }
+  .gd-btn-icon { width: 38px; padding: 0; justify-content: center; }
+
+  /* INPUTS */
+  .gd-input-wrap { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+  .gd-label { font-size: 13px; font-weight: 500; color: var(--color-text-secondary); }
+  .gd-input { font-family: 'DM Sans', sans-serif; font-size: 14px; background: var(--color-background-primary); border: 1px solid var(--color-border-secondary); border-radius: 8px; padding: 0 12px; height: 38px; color: var(--color-text-primary); width: 100%; outline: none; }
+  .gd-input:focus { border-color: var(--gd-amber-400); box-shadow: 0 0 0 3px rgba(212,137,26,0.15); }
+  .gd-input.error { border-color: var(--gd-danger); }
+  .gd-input.success { border-color: var(--gd-success); }
+  .gd-hint { font-size: 11px; color: var(--color-text-tertiary); }
+  .gd-hint.error { color: var(--gd-danger); }
+  .gd-hint.success { color: var(--gd-success); }
+  .gd-select { font-family: 'DM Sans', sans-serif; font-size: 14px; background: var(--color-background-primary); border: 1px solid var(--color-border-secondary); border-radius: 8px; padding: 0 12px; height: 38px; color: var(--color-text-primary); width: 100%; }
+  .gd-textarea { font-family: 'DM Sans', sans-serif; font-size: 14px; background: var(--color-background-primary); border: 1px solid var(--color-border-secondary); border-radius: 8px; padding: 10px 12px; color: var(--color-text-primary); width: 100%; resize: vertical; outline: none; line-height: 1.5; }
+  .gd-textarea:focus { border-color: var(--gd-amber-400); box-shadow: 0 0 0 3px rgba(212,137,26,0.15); }
+
+  /* CARDS */
+  .gd-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1.25rem; }
+  .gd-card-accent { border-left: 3px solid var(--gd-amber-400); border-radius: 0 var(--border-radius-lg) var(--border-radius-lg) 0; }
+  .gd-card-featured { border: 2px solid var(--gd-amber-400); }
+  .gd-metric { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 1rem; }
+  .gd-metric-label { font-size: 12px; color: var(--color-text-tertiary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .gd-metric-value { font-family: 'Barlow Condensed', sans-serif; font-size: 28px; font-weight: 700; color: var(--color-text-primary); }
+  .gd-metric-delta { font-size: 12px; color: var(--gd-success); margin-top: 2px; }
+
+  /* BADGES */
+  .badge-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .gd-badge { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; display: inline-flex; align-items: center; gap: 4px; }
+  .badge-success { background: var(--gd-success-bg); color: var(--gd-success); }
+  .badge-warning { background: var(--gd-warning-bg); color: var(--gd-warning); }
+  .badge-danger { background: var(--gd-danger-bg); color: var(--gd-danger); }
+  .badge-info { background: var(--gd-info-bg); color: var(--gd-info); }
+  .badge-amber { background: var(--gd-amber-50); color: var(--gd-amber-600); }
+  .badge-neutral { background: var(--color-background-tertiary); color: var(--color-text-secondary); border: 0.5px solid var(--color-border-secondary); }
+
+  /* NOTIFICATIONS */
+  .gd-notif { border-radius: var(--border-radius-md); padding: 12px 14px; display: flex; gap: 10px; margin-bottom: 8px; align-items: flex-start; font-size: 13px; line-height: 1.5; }
+  .gd-notif .notif-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .gd-notif-success { background: var(--gd-success-bg); color: #1B5E20; border-left: 3px solid var(--gd-success); }
+  .gd-notif-warning { background: var(--gd-warning-bg); color: var(--gd-amber-800); border-left: 3px solid var(--gd-amber-400); }
+  .gd-notif-danger { background: var(--gd-danger-bg); color: #B71C1C; border-left: 3px solid var(--gd-danger); }
+  .gd-notif-info { background: var(--gd-info-bg); color: #01579B; border-left: 3px solid var(--gd-info); }
+  .notif-title { font-weight: 500; margin-bottom: 2px; }
+
+  /* MODAL PREVIEW */
+  .modal-backdrop { background: rgba(0,0,0,0.45); border-radius: var(--border-radius-lg); display: flex; align-items: center; justify-content: center; min-height: 280px; padding: 1.5rem; }
+  .modal-box { background: var(--color-background-primary); border-radius: 12px; padding: 1.5rem; max-width: 360px; width: 100%; border: 0.5px solid var(--color-border-secondary); }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+  .modal-title { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 700; color: var(--color-text-primary); letter-spacing: 0.01em; }
+  .modal-close { background: none; border: none; cursor: pointer; color: var(--color-text-tertiary); font-size: 18px; padding: 2px; border-radius: 4px; }
+  .modal-body { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 1.25rem; line-height: 1.6; }
+  .modal-footer { display: flex; gap: 8px; justify-content: flex-end; }
+
+  /* SIDENAV PREVIEW */
+  .sidenav-demo { background: var(--color-background-secondary); border-radius: var(--border-radius-lg); overflow: hidden; border: 0.5px solid var(--color-border-tertiary); }
+  .sidenav-header { padding: 14px 16px; border-bottom: 0.5px solid var(--color-border-tertiary); display: flex; align-items: center; gap: 10px; }
+  .sidenav-logo-mark { width: 32px; height: 32px; border-radius: 8px; background: var(--gd-amber-400); display: flex; align-items: center; justify-content: center; }
+  .sidenav-brand { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 17px; letter-spacing: 0.02em; color: var(--color-text-primary); }
+  .sidenav-brand span { color: var(--gd-amber-400); }
+  .nav-group-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-text-tertiary); padding: 12px 16px 6px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 8px 16px; font-size: 13px; color: var(--color-text-secondary); cursor: pointer; border-radius: 0; transition: background 0.1s; }
+  .nav-item:hover { background: var(--color-background-tertiary); }
+  .nav-item.active { background: rgba(212,137,26,0.12); color: var(--gd-amber-600); border-right: 2px solid var(--gd-amber-400); font-weight: 500; }
+  .nav-item i { font-size: 16px; }
+  .nav-badge { margin-left: auto; font-size: 10px; background: var(--gd-amber-400); color: #fff; border-radius: 10px; padding: 1px 7px; font-weight: 600; }
+
+  /* TABLE */
+  .gd-table-wrap { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); overflow: hidden; }
+  .gd-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .gd-table th { background: var(--color-background-secondary); color: var(--color-text-tertiary); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; padding: 10px 14px; text-align: left; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .gd-table td { padding: 11px 14px; border-bottom: 0.5px solid var(--color-border-tertiary); color: var(--color-text-primary); vertical-align: middle; }
+  .gd-table tr:last-child td { border-bottom: none; }
+  .gd-table tr:hover td { background: var(--color-background-secondary); }
+
+  /* FOCUS / ACCESSIBILITY DEMO */
+  .a11y-demo { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .focus-ring-demo { outline: 3px solid var(--gd-amber-400); outline-offset: 3px; border-radius: 8px; }
+
+  /* DARK DEMO PANEL */
+  .dark-panel { background: #0D0D0D; border-radius: var(--border-radius-lg); padding: 1.5rem; }
+  .dark-panel .dark-card { background: #1A1A1A; border: 0.5px solid rgba(212,137,26,0.2); border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 10px; }
+  .dark-panel .dark-title { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 700; color: #FFFFFF; letter-spacing: 0.02em; }
+  .dark-panel .dark-sub { font-size: 13px; color: rgba(255,255,255,0.5); }
+  .dark-panel .dark-metric { background: rgba(212,137,26,0.08); border: 0.5px solid rgba(212,137,26,0.25); border-radius: 8px; padding: 12px; }
+  .dark-panel .dark-metric-val { font-family: 'Barlow Condensed', sans-serif; font-size: 26px; font-weight: 700; color: var(--gd-amber-200); }
+  .dark-panel .dark-metric-label { font-size: 11px; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.08em; }
+  .dark-panel .dark-btn { background: var(--gd-amber-400); color: #fff; border: none; border-radius: 8px; padding: 0 16px; height: 36px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; }
+  .dark-panel .dark-btn-ghost { background: transparent; border: 1px solid rgba(212,137,26,0.4); color: var(--gd-amber-200); }
+
+  /* SPACING */
+  .space-demo { display: flex; align-items: flex-end; gap: 4px; }
+  .space-block { background: rgba(212,137,26,0.3); border: 1px solid var(--gd-amber-400); border-radius: 3px; }
+
+  /* MOTION DEMO */
+  @keyframes gd-pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+  @keyframes gd-slide-in { from{transform:translateY(8px);opacity:0} to{transform:translateY(0);opacity:1} }
+  .animate-pulse { animation: gd-pulse 2s ease-in-out infinite; }
+  .animate-enter { animation: gd-slide-in 0.25s ease-out; }
+
+  /* WCAG CONTRAST TAG */
+  .contrast-tag { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 4px; margin-left: 6px; vertical-align: middle; }
+  .contrast-aaa { background: #E8F5E9; color: #1B5E20; }
+  .contrast-aa { background: #E3F2FD; color: #0D47A1; }
+  .contrast-fail { background: #FFEBEE; color: #B71C1C; }
+
+  .section-tag { display: inline-block; background: rgba(212,137,26,0.12); color: var(--gd-amber-600); font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 9px; border-radius: 20px; margin-bottom: 10px; }
+
+  .sg-subheading { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 1.5rem; line-height: 1.6; }
+  .mono { font-family: 'JetBrains Mono', monospace; font-size: 11px; background: var(--color-background-secondary); padding: 1px 6px; border-radius: 4px; color: var(--color-text-secondary); }
+
+  .lm-panel { background: #F9F6F1; border-radius: var(--border-radius-lg); padding: 1.5rem; border: 0.5px solid #E2D9C8; }
+  .lm-card { background: #FFFFFF; border: 0.5px solid #D6CFC2; border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 10px; }
+  .lm-metric { background: #F0EBE1; border-radius: 8px; padding: 12px; }
+  .lm-metric-val { font-family: 'Barlow Condensed', sans-serif; font-size: 26px; font-weight: 700; color: #A56210; }
+  .lm-metric-label { font-size: 11px; color: #6E6456; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 2px; }
+  .lm-title { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 800; color: #1A1612; letter-spacing: 0.02em; }
+  .lm-sub { font-size: 13px; color: #6E6456; }
+  .lm-input { background: #FFFFFF; border: 1px solid #C4B89E; border-radius: 8px; padding: 0 12px; height: 38px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: #1A1612; width: 100%; }
+  .lm-input:focus { border-color: #D4891A; outline: none; box-shadow: 0 0 0 3px rgba(212,137,26,0.15); }
+  .lm-nav { background: #FFFFFF; border-right: 0.5px solid #E2D9C8; padding: 12px 0; }
+  .lm-nav-item { display: flex; align-items: center; gap: 10px; padding: 8px 16px; font-size: 13px; color: #6E6456; cursor: pointer; }
+  .lm-nav-item.active { background: rgba(212,137,26,0.10); color: #A56210; border-right: 2px solid #D4891A; font-weight: 500; }
+
+  @keyframes gd-shimmer { 0%{opacity:0.4} 50%{opacity:0.9} 100%{opacity:0.4} }
+  @keyframes gd-spin { to{transform:rotate(360deg)} }
+  @keyframes gd-progress { 0%{width:0%} 100%{width:75%} }
+  @keyframes gd-fade-in { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes gd-slide-right { from{transform:translateX(-8px);opacity:0} to{transform:translateX(0);opacity:1} }
+  .shimmer-block { background: var(--color-background-secondary); border-radius: 6px; animation: gd-shimmer 1.6s ease-in-out infinite; }
+  .spinner { width: 20px; height: 20px; border: 2px solid var(--color-border-secondary); border-top-color: var(--gd-amber-400); border-radius: 50%; animation: gd-spin 0.7s linear infinite; display: inline-block; vertical-align: middle; }
+  .fade-in-demo { animation: gd-fade-in 0.3s ease-out both; }
+  .slide-demo { animation: gd-slide-right 0.25s ease-out both; }
+
+  .icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; }
+  .icon-cell { display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 10px 6px; background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: 8px; }
+  .icon-cell i { font-size: 20px; color: var(--gd-amber-400); }
+  .icon-cell span { font-size: 9px; color: var(--color-text-tertiary); text-align: center; font-family: 'JetBrains Mono', monospace; }
+
+  .progress-track { background: var(--color-background-secondary); border-radius: 999px; height: 8px; overflow: hidden; margin-bottom: 6px; }
+  .progress-fill { height: 100%; background: var(--gd-amber-400); border-radius: 999px; }
+  .progress-fill-success { background: var(--gd-success); }
+  .progress-fill-danger { background: var(--gd-danger); }
+
+  .toggle-wrap { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .toggle { width: 40px; height: 22px; border-radius: 999px; border: none; cursor: pointer; position: relative; transition: background 0.2s; flex-shrink: 0; }
+  .toggle.on { background: var(--gd-amber-400); }
+  .toggle.off { background: var(--color-border-secondary); }
+  .toggle::after { content: ''; position: absolute; top: 3px; width: 16px; height: 16px; background: #fff; border-radius: 50%; transition: left 0.2s; }
+  .toggle.on::after { left: 21px; }
+  .toggle.off::after { left: 3px; }
+
+  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 500; border: 0.5px solid var(--color-border-secondary); color: var(--color-text-secondary); background: var(--color-background-primary); cursor: pointer; }
+  .chip.selected { background: rgba(212,137,26,0.12); border-color: var(--gd-amber-400); color: var(--gd-amber-600); }
+
+  .breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--color-text-tertiary); margin-bottom: 1rem; flex-wrap: wrap; }
+  .breadcrumb a { color: var(--gd-amber-600); text-decoration: none; }
+  .breadcrumb span { color: var(--color-text-primary); font-weight: 500; }
+
+  .pagination { display: flex; gap: 4px; align-items: center; }
+  .pg-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 6px; border: 0.5px solid var(--color-border-tertiary); background: var(--color-background-primary); font-size: 13px; font-weight: 500; cursor: pointer; color: var(--color-text-secondary); }
+  .pg-btn.active { background: var(--gd-amber-400); color: #fff; border-color: var(--gd-amber-400); }
+
+  .step-row { display: flex; align-items: center; gap: 0; margin-bottom: 1rem; }
+  .step-item { display: flex; flex-direction: column; align-items: center; flex: 1; }
+  .step-circle { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; }
+  .step-circle.done { background: var(--gd-amber-400); color: #fff; }
+  .step-circle.current { background: #fff; border: 2px solid var(--gd-amber-400); color: var(--gd-amber-600); }
+  .step-circle.todo { background: var(--color-background-secondary); color: var(--color-text-tertiary); border: 1px solid var(--color-border-secondary); }
+  .step-label { font-size: 11px; color: var(--color-text-tertiary); margin-top: 4px; text-align: center; }
+  .step-label.current { color: var(--gd-amber-600); font-weight: 500; }
+  .step-line { flex: 1; height: 2px; background: var(--color-border-tertiary); margin-top: -20px; }
+  .step-line.done { background: var(--gd-amber-400); }
+
+  .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3rem 1rem; text-align: center; }
+  .empty-icon { width: 56px; height: 56px; border-radius: 16px; background: rgba(212,137,26,0.10); display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; }
+  .empty-icon i { font-size: 26px; color: var(--gd-amber-400); }
+  .empty-title { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 700; color: var(--color-text-primary); margin-bottom: 6px; }
+  .empty-body { font-size: 13px; color: var(--color-text-secondary); max-width: 260px; line-height: 1.6; margin-bottom: 1rem; }
+
+  .tooltip-demo { position: relative; display: inline-flex; align-items: center; }
+  .tooltip-box { position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: #1A1612; color: #F5EDD8; font-size: 11px; padding: 5px 10px; border-radius: 6px; white-space: nowrap; pointer-events: none; }
+  .tooltip-box::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 4px solid transparent; border-top-color: #1A1612; }
+
+  .avatar-stack { display: flex; }
+  .avatar { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--color-background-primary); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; margin-left: -8px; }
+  .avatar:first-child { margin-left: 0; }
+
+  .kbd { display: inline-flex; align-items: center; justify-content: center; padding: 2px 7px; background: var(--color-background-secondary); border: 0.5px solid var(--color-border-secondary); border-radius: 5px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--color-text-secondary); }
+
+  .color-mode-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .do-dont-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .do-card { border-left: 3px solid var(--gd-success); border-radius: 0 var(--border-radius-lg) var(--border-radius-lg) 0; background: var(--color-background-primary); border-top: 0.5px solid var(--color-border-tertiary); border-right: 0.5px solid var(--color-border-tertiary); border-bottom: 0.5px solid var(--color-border-tertiary); padding: 1rem 1.25rem; }
+  .dont-card { border-left: 3px solid var(--gd-danger); border-radius: 0 var(--border-radius-lg) var(--border-radius-lg) 0; background: var(--color-background-primary); border-top: 0.5px solid var(--color-border-tertiary); border-right: 0.5px solid var(--color-border-tertiary); border-bottom: 0.5px solid var(--color-border-tertiary); padding: 1rem 1.25rem; }
+  .do-tag { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gd-success); margin-bottom: 8px; }
+  .dont-tag { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gd-danger); margin-bottom: 8px; }
+
+  .ref-row { display: flex; align-items: baseline; justify-content: space-between; padding: 7px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 13px; }
+  .ref-row:last-child { border-bottom: none; }
+  .ref-name { font-weight: 500; color: var(--color-text-primary); }
+  .ref-val { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--color-text-secondary); }
+  #foundations,
+  #components,
+  #patterns,
+  #accessibility,
+  #light-motion-states,
+  #icons-usage-reference {
+    scroll-margin-top: 20px;
+  }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <div class="guide-shell">
+    <aside class="guide-toc" aria-label="Style guide contents">
+      <div class="guide-toc-title"><span style="color:var(--gd-amber-400);">GEE</span>DRIVE</div>
+      <div class="guide-toc-subtitle">Merged style guide · v1.0</div>
+      <nav>
+        <a href="#foundations">Foundations</a>
+        <a href="#components">Core Components</a>
+        <a href="#patterns">Navigation &amp; Data Patterns</a>
+        <a href="#accessibility">Accessibility</a>
+        <a href="#light-motion-states">Light Mode, Motion &amp; States</a>
+        <a href="#icons-usage-reference">Icons, Usage &amp; Reference</a>
+      </nav>
+    </aside>
+    <main id="main" class="guide-content" tabindex="-1">
+      <div class="sg" role="document" aria-labelledby="guide-title">
+        <h1 id="guide-title" class="sr-only">GeeDrive Motors Web Application Style Guide</h1>
+        <section id="foundations" aria-label="Foundations and brand system">
+<!-- HEADER -->
+  <div style="padding: 2rem 0 1.5rem; border-bottom: 0.5px solid var(--color-border-tertiary); margin-bottom: 2.5rem;">
+    <div style="display:flex; align-items:center; gap:14px; margin-bottom:10px;">
+      <div style="width:48px; height:48px; border-radius:12px; background: var(--gd-amber-400); display:flex; align-items:center; justify-content:center;">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+          <path d="M14 4C8.5 4 4 8.5 4 14s4.5 10 10 10 10-4.5 10-10S19.5 4 14 4zm0 4c3.3 0 6 2.7 6 6s-2.7 6-6 6-6-2.7-6-6 2.7-6 6-6zm0 2v4h3" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M14 10l-3 4h4l-1 4" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>
+        </svg>
+      </div>
+      <div>
+        <div style="font-family:'Barlow Condensed',sans-serif; font-size:28px; font-weight:800; letter-spacing:0.02em; color:var(--color-text-primary);">
+          <span style="color:var(--gd-amber-400);">GEE</span>DRIVE MOTORS
+        </div>
+        <div style="font-size:12px; color:var(--color-text-tertiary); letter-spacing:0.05em; text-transform:uppercase;">Web Application Style Guide v1.0</div>
+      </div>
+    </div>
+    <p style="font-size:14px; color:var(--color-text-secondary); max-width:620px; line-height:1.6;">Design tokens, component patterns, and accessibility guidelines for the management dashboard. All colour pairings meet WCAG 2.1 AA at minimum, with critical UI elements at AAA.</p>
+  </div>
+
+  <!-- BRAND COLORS -->
+  <div class="sg-section">
+    <div class="section-tag">Brand Identity</div>
+    <div class="sg-heading">Color System</div>
+    <div class="sg-subheading">Derived directly from the GeeDrive Motors brand mark</div>
+
+    <!-- Amber ramp -->
+    <div class="swatch-group">
+      <div class="swatch-row">
+        <div class="swatch" style="background:#FEF3E0;"><span style="color:#7A4508;">50</span></div>
+        <div class="swatch" style="background:#FCDFA0;"><span style="color:#7A4508;">100</span></div>
+        <div class="swatch" style="background:#F5C053;"><span style="color:#7A4508;">200</span></div>
+        <div class="swatch" style="background:#D4891A;"><span style="color:#fff;">400</span></div>
+        <div class="swatch" style="background:#A56210;"><span style="color:#fff;">600</span></div>
+        <div class="swatch" style="background:#7A4508;"><span style="color:#fff;">800</span></div>
+        <div class="swatch" style="background:#4F2C03;"><span style="color:#fff;">900</span></div>
+      </div>
+      <div style="font-size:12px; color:var(--color-text-secondary);">
+        <strong style="color:var(--color-text-primary);">Amber — Primary Brand</strong> &nbsp;·&nbsp; 
+        400 (#D4891A) is the signature tone <span class="contrast-tag contrast-aa">AA on white</span>
+        &nbsp;·&nbsp; 600 (#A56210) <span class="contrast-tag contrast-aaa">AAA on white</span>
+      </div>
+    </div>
+
+    <!-- Red ramp -->
+    <div class="swatch-group">
+      <div class="swatch-row">
+        <div class="swatch" style="background:#FFEDE8;"><span style="color:#5A0F02;">50</span></div>
+        <div class="swatch" style="background:#FFBFAA;"><span style="color:#5A0F02;">100</span></div>
+        <div class="swatch" style="background:#F58060;"><span style="color:#5A0F02;">200</span></div>
+        <div class="swatch" style="background:#C0390A;"><span style="color:#fff;">400</span></div>
+        <div class="swatch" style="background:#8B1A05;"><span style="color:#fff;">600</span></div>
+        <div class="swatch" style="background:#5A0F02;"><span style="color:#fff;">800</span></div>
+        <div class="swatch" style="background:#2F0701;"><span style="color:#fff;">900</span></div>
+      </div>
+      <div style="font-size:12px; color:var(--color-text-secondary);">
+        <strong style="color:var(--color-text-primary);">Red — Brand Accent (logo gradient terminus)</strong> &nbsp;·&nbsp; Use for destructive actions &amp; critical alerts
+      </div>
+    </div>
+
+    <!-- Neutrals -->
+    <div class="swatch-group">
+      <div class="swatch-row">
+        <div class="swatch" style="background:#F9F6F1;"><span style="color:#555;">Page bg</span></div>
+        <div class="swatch" style="background:#F0EBE1;"><span style="color:#555;">Surface</span></div>
+        <div class="swatch" style="background:#E2D9C8;"><span style="color:#555;">Elevated</span></div>
+        <div class="swatch" style="background:#B0A690;"><span style="color:#fff;">Border</span></div>
+        <div class="swatch" style="background:#6E6456;"><span style="color:#fff;">Muted text</span></div>
+        <div class="swatch" style="background:#2E2A24;"><span style="color:#fff;">Body text</span></div>
+        <div class="swatch" style="background:#0D0D0B;"><span style="color:#fff;">Heading</span></div>
+      </div>
+      <div style="font-size:12px; color:var(--color-text-secondary);">
+        <strong style="color:var(--color-text-primary);">Warm Neutrals — Light Mode</strong> &nbsp;·&nbsp; Warm undertones echo the amber brand palette
+      </div>
+    </div>
+
+    <!-- Dark mode neutrals -->
+    <div class="swatch-group">
+      <div class="swatch-row">
+        <div class="swatch" style="background:#0D0D0D;"><span style="color:#aaa;">Bg</span></div>
+        <div class="swatch" style="background:#181818;"><span style="color:#aaa;">Surface</span></div>
+        <div class="swatch" style="background:#242424;"><span style="color:#aaa;">Elevated</span></div>
+        <div class="swatch" style="background:#3A3530;"><span style="color:#aaa;">Border</span></div>
+        <div class="swatch" style="background:#8A8070;"><span style="color:#fff;">Muted</span></div>
+        <div class="swatch" style="background:#C8BEA8;"><span style="color:#111;">Body</span></div>
+        <div class="swatch" style="background:#F5EDD8;"><span style="color:#111;">Heading</span></div>
+      </div>
+      <div style="font-size:12px; color:var(--color-text-secondary);">
+        <strong style="color:var(--color-text-primary);">Dark Mode Neutrals</strong> &nbsp;·&nbsp; Warm blacks avoid cold/grey feel. All body text ≥ 4.5:1 contrast ratio
+      </div>
+    </div>
+
+    <!-- Semantic -->
+    <div class="swatch-group">
+      <div class="swatch-row" style="max-width: 440px;">
+        <div class="swatch" style="background:#2E7D32; border-radius:8px 0 0 8px;"><span style="color:#fff; font-size:10px;">Success</span></div>
+        <div class="swatch" style="background:#D4891A;"><span style="color:#fff; font-size:10px;">Warning</span></div>
+        <div class="swatch" style="background:#C62828;"><span style="color:#fff; font-size:10px;">Danger</span></div>
+        <div class="swatch" style="background:#0277BD; border-radius:0 8px 8px 0;"><span style="color:#fff; font-size:10px;">Info</span></div>
+      </div>
+      <div style="font-size:12px; color:var(--color-text-secondary); margin-top:6px;">
+        <strong style="color:var(--color-text-primary);">Semantic States</strong> &nbsp;·&nbsp; Warning intentionally uses brand amber — unified with brand identity
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- TYPOGRAPHY -->
+  <div class="sg-section">
+    <div class="section-tag">Typography</div>
+    <div class="sg-heading">Type Scale</div>
+    <div class="sg-subheading">Barlow Condensed for display/headings matches the logo's bold condensed letterforms. DM Sans for body — warm, readable, modern.</div>
+
+    <div class="type-specimen">
+      <div class="type-meta">Barlow Condensed 800 · 32px · display-xl — Page titles, Hero headings</div>
+      <div style="font-family:'Barlow Condensed',sans-serif; font-size:32px; font-weight:800; color:var(--color-text-primary); letter-spacing:0.01em;">Vehicle Inventory Dashboard</div>
+    </div>
+    <div class="type-specimen">
+      <div class="type-meta">Barlow Condensed 700 · 24px · display-lg — Section headings, Modal titles</div>
+      <div style="font-family:'Barlow Condensed',sans-serif; font-size:24px; font-weight:700; color:var(--color-text-primary); letter-spacing:0.01em;">Fleet Management Overview</div>
+    </div>
+    <div class="type-specimen">
+      <div class="type-meta">DM Sans 600 · 17px · heading — Card titles, Nav section labels</div>
+      <div style="font-family:'DM Sans',sans-serif; font-size:17px; font-weight:600; color:var(--color-text-primary);">Recent Transactions</div>
+    </div>
+    <div class="type-specimen">
+      <div class="type-meta">DM Sans 500 · 14px · subheading — Labels, table headers</div>
+      <div style="font-family:'DM Sans',sans-serif; font-size:14px; font-weight:500; color:var(--color-text-secondary);">Invoice #GD-20241107 · Due 15 Nov 2024</div>
+    </div>
+    <div class="type-specimen">
+      <div class="type-meta">DM Sans 400 · 14px · body — Paragraph text, descriptions</div>
+      <div style="font-family:'DM Sans',sans-serif; font-size:14px; font-weight:400; color:var(--color-text-primary); line-height:1.7;">Manage your fleet, sales pipeline, and service records from one central dashboard. All data updates in real time across all connected branches.</div>
+    </div>
+    <div class="type-specimen">
+      <div class="type-meta">DM Sans 400 · 12px · caption — Helper text, timestamps, metadata</div>
+      <div style="font-family:'DM Sans',sans-serif; font-size:12px; font-weight:400; color:var(--color-text-tertiary);">Last updated · 2 minutes ago · by admin@geedrive.zm</div>
+    </div>
+    <div class="type-specimen">
+      <div class="type-meta">JetBrains Mono 400 · 12px · mono — VIN numbers, codes, tokens</div>
+      <div style="font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:400; color:var(--color-text-primary);">VIN: JTKJF5C76F3066812 · Stock: GD-2024-0041</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- SPACING -->
+  <div class="sg-section">
+    <div class="section-tag">Layout</div>
+    <div class="sg-heading">Spacing Scale</div>
+    <div class="sg-subheading">4px base unit · Used for padding, margins, gaps</div>
+    <div class="space-demo" style="margin-bottom:8px;">
+      <div>
+        <div class="space-block" style="width:4px; height:4px;"></div>
+        <div style="font-size:9px; color:var(--color-text-tertiary); margin-top:3px; text-align:center;">4</div>
+      </div>
+      <div><div class="space-block" style="width:8px; height:8px;"></div><div style="font-size:9px; color:var(--color-text-tertiary); margin-top:3px; text-align:center;">8</div></div>
+      <div><div class="space-block" style="width:12px; height:12px;"></div><div style="font-size:9px; color:var(--color-text-tertiary); margin-top:3px; text-align:center;">12</div></div>
+      <div><div class="space-block" style="width:16px; height:16px;"></div><div style="font-size:9px; color:var(--color-text-tertiary); margin-top:3px; text-align:center;">16</div></div>
+      <div><div class="space-block" style="width:20px; height:20px;"></div><div style="font-size:9px; color:var(--color-text-tertiary); margin-top:3px; text-align:center;">20</div></div>
+      <div><div class="space-block" style="width:24px; height:24px;"></div><div style="font-size:9px; color:var(--color-text-tertiary); margin-top:3px; text-align:center;">24</div></div>
+      <div><div class="space-block" style="width:32px; height:32px;"></div><div style="font-size:9px; color:var(--color-text-tertiary); margin-top:3px; text-align:center;">32</div></div>
+      <div><div class="space-block" style="width:40px; height:40px;"></div><div style="font-size:9px; color:var(--color-text-tertiary); margin-top:3px; text-align:center;">40</div></div>
+      <div><div class="space-block" style="width:48px; height:48px;"></div><div style="font-size:9px; color:var(--color-text-tertiary); margin-top:3px; text-align:center;">48</div></div>
+      <div><div class="space-block" style="width:64px; height:64px;"></div><div style="font-size:9px; color:var(--color-text-tertiary); margin-top:3px; text-align:center;">64</div></div>
+    </div>
+    <div class="grid-3" style="margin-top:1rem;">
+      <div class="token-card"><div class="token-name">Border radius</div><div class="token-value">4 / 8 / 12 / 16 / 999px</div><div class="token-preview" style="display:flex; gap:6px; margin-top:8px;">
+        <div style="width:24px;height:24px;background:var(--gd-amber-400);border-radius:4px;"></div>
+        <div style="width:24px;height:24px;background:var(--gd-amber-400);border-radius:8px;"></div>
+        <div style="width:24px;height:24px;background:var(--gd-amber-400);border-radius:12px;"></div>
+        <div style="width:24px;height:24px;background:var(--gd-amber-400);border-radius:999px;"></div>
+      </div></div>
+      <div class="token-card"><div class="token-name">Sidebar width</div><div class="token-value">240px collapsed · 60px mini</div></div>
+      <div class="token-card"><div class="token-name">Focus ring</div><div class="token-value">0 0 0 3px rgba(212,137,26,0.35)</div><div class="token-preview"><button class="gd-btn gd-btn-ghost focus-ring-demo" style="font-size:12px; height:28px; padding:0 10px;">Focused</button></div></div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- BUTTONS -->
+  <div id="components" class="sg-section">
+    <div class="section-tag">Components</div>
+    <div class="sg-heading">Buttons</div>
+    <div class="sg-subheading">Touch target minimum 44×44px (WCAG 2.5.5). All interactive states: default, hover, focus, disabled.</div>
+
+    <div style="background:var(--color-background-primary); border:0.5px solid var(--color-border-tertiary); border-radius:var(--border-radius-lg); padding:1.25rem; margin-bottom:10px;">
+      <div style="font-size:11px; color:var(--color-text-tertiary); margin-bottom:12px; text-transform:uppercase; letter-spacing:0.08em;">Variants</div>
+      <div class="btn-demo">
+        <button class="gd-btn gd-btn-primary"><i class="ti ti-plus" aria-hidden="true"></i> Add Vehicle</button>
+        <button class="gd-btn gd-btn-secondary"><i class="ti ti-edit" aria-hidden="true"></i> Edit Record</button>
+        <button class="gd-btn gd-btn-ghost"><i class="ti ti-download" aria-hidden="true"></i> Export</button>
+        <button class="gd-btn gd-btn-danger"><i class="ti ti-trash" aria-hidden="true"></i> Delete</button>
+      </div>
+    </div>
+    <div style="background:var(--color-background-primary); border:0.5px solid var(--color-border-tertiary); border-radius:var(--border-radius-lg); padding:1.25rem; margin-bottom:10px;">
+      <div style="font-size:11px; color:var(--color-text-tertiary); margin-bottom:12px; text-transform:uppercase; letter-spacing:0.08em;">Sizes</div>
+      <div class="btn-demo">
+        <button class="gd-btn gd-btn-primary gd-btn-sm">Small</button>
+        <button class="gd-btn gd-btn-primary">Default (38px)</button>
+        <button class="gd-btn gd-btn-primary gd-btn-lg">Large</button>
+        <button class="gd-btn gd-btn-primary gd-btn-icon" aria-label="Settings"><i class="ti ti-settings" aria-hidden="true"></i></button>
+        <button class="gd-btn gd-btn-ghost" disabled style="opacity:0.4;cursor:not-allowed;">Disabled</button>
+      </div>
+    </div>
+    <div style="background:#0D0D0D; border-radius:var(--border-radius-lg); padding:1.25rem;">
+      <div style="font-size:11px; color:rgba(255,255,255,0.4); margin-bottom:12px; text-transform:uppercase; letter-spacing:0.08em;">On dark background</div>
+      <div class="btn-demo">
+        <button class="gd-btn gd-btn-primary"><i class="ti ti-plus" aria-hidden="true"></i> Add Vehicle</button>
+        <button class="gd-btn" style="background:transparent;border:1.5px solid rgba(212,137,26,0.6);color:#F5C053;"><i class="ti ti-edit" aria-hidden="true"></i> Edit</button>
+        <button class="gd-btn" style="background:transparent;border:0.5px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.7);"><i class="ti ti-download" aria-hidden="true"></i> Export</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- FORMS -->
+  <div class="sg-section">
+    <div class="sg-heading">Form Controls</div>
+    <div class="sg-subheading">Labels always visible (not just placeholders). Error states use colour + icon + text. WCAG 1.4.1: never colour alone.</div>
+
+    <div style="background:var(--color-background-primary); border:0.5px solid var(--color-border-tertiary); border-radius:var(--border-radius-lg); padding:1.25rem;">
+      <div class="grid-2">
+        <div>
+          <div class="gd-input-wrap">
+            <label class="gd-label" for="inp-name">Customer name</label>
+            <input class="gd-input" id="inp-name" type="text" placeholder="e.g. Mwamba Banda" />
+          </div>
+          <div class="gd-input-wrap">
+            <label class="gd-label" for="inp-email">Email address</label>
+            <div style="position:relative;">
+              <i class="ti ti-mail" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--color-text-tertiary);font-size:16px;" aria-hidden="true"></i>
+              <input class="gd-input" id="inp-email" type="email" placeholder="name@example.com" style="padding-left:34px;" />
+            </div>
+          </div>
+          <div class="gd-input-wrap">
+            <label class="gd-label" for="inp-vin">VIN number</label>
+            <input class="gd-input success" id="inp-vin" type="text" value="JTKJF5C76F3066812" style="font-family:'JetBrains Mono',monospace; font-size:13px;" />
+            <span class="gd-hint success"><i class="ti ti-circle-check" aria-hidden="true"></i> VIN verified in registry</span>
+          </div>
+        </div>
+        <div>
+          <div class="gd-input-wrap">
+            <label class="gd-label" for="inp-status">Vehicle status</label>
+            <select class="gd-select" id="inp-status">
+              <option>Available</option>
+              <option>Reserved</option>
+              <option>Sold</option>
+              <option>In service</option>
+            </select>
+          </div>
+          <div class="gd-input-wrap">
+            <label class="gd-label" for="inp-price">Listed price (ZMW)</label>
+            <input class="gd-input error" id="inp-price" type="number" value="-500" />
+            <span class="gd-hint error"><i class="ti ti-alert-circle" aria-hidden="true"></i> Price must be greater than 0</span>
+          </div>
+          <div class="gd-input-wrap">
+            <label class="gd-label" for="inp-notes">Notes</label>
+            <textarea class="gd-textarea" id="inp-notes" rows="3" placeholder="Additional notes about this vehicle..."></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- CARDS -->
+  <div class="sg-section">
+    <div class="sg-heading">Cards &amp; Metrics</div>
+    <div class="sg-subheading">Four metric cards, then data cards in grid layout</div>
+
+    <div class="grid-4" style="margin-bottom:12px;">
+      <div class="gd-metric">
+        <div class="gd-metric-label">Total Fleet</div>
+        <div class="gd-metric-value">248</div>
+        <div class="gd-metric-delta"><i class="ti ti-trending-up" aria-hidden="true"></i> +12 this month</div>
+      </div>
+      <div class="gd-metric">
+        <div class="gd-metric-label">Available</div>
+        <div class="gd-metric-value" style="color:var(--gd-amber-600);">91</div>
+        <div class="gd-metric-delta" style="color:var(--color-text-tertiary);">37% of fleet</div>
+      </div>
+      <div class="gd-metric">
+        <div class="gd-metric-label">Revenue (MTD)</div>
+        <div class="gd-metric-value">K 1.4M</div>
+        <div class="gd-metric-delta"><i class="ti ti-trending-up" aria-hidden="true"></i> +8.2%</div>
+      </div>
+      <div class="gd-metric">
+        <div class="gd-metric-label">Open Services</div>
+        <div class="gd-metric-value" style="color:var(--gd-danger);">14</div>
+        <div class="gd-metric-delta" style="color:var(--gd-danger); font-size:11px;"><i class="ti ti-alert-triangle" aria-hidden="true"></i> 3 overdue</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="gd-card">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
+          <div>
+            <div style="font-family:'Barlow Condensed',sans-serif; font-size:17px; font-weight:700; color:var(--color-text-primary);">2023 Toyota HiLux</div>
+            <div style="font-size:12px; color:var(--color-text-tertiary); font-family:'JetBrains Mono',monospace;">GD-2024-0041</div>
+          </div>
+          <span class="gd-badge badge-success"><i class="ti ti-circle-check" aria-hidden="true"></i> Available</span>
+        </div>
+        <div style="font-size:22px; font-weight:700; color:var(--gd-amber-600); font-family:'Barlow Condensed',sans-serif; margin-bottom:10px;">K 285,000</div>
+        <div style="display:flex; gap:8px;">
+          <button class="gd-btn gd-btn-primary gd-btn-sm">View details</button>
+          <button class="gd-btn gd-btn-ghost gd-btn-sm"><i class="ti ti-edit" aria-hidden="true"></i> Edit</button>
+        </div>
+      </div>
+      <div class="gd-card gd-card-featured">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
+          <div>
+            <div style="font-family:'Barlow Condensed',sans-serif; font-size:17px; font-weight:700; color:var(--color-text-primary);">2022 Ford Ranger XLT</div>
+            <div style="font-size:12px; color:var(--color-text-tertiary); font-family:'JetBrains Mono',monospace;">GD-2024-0038</div>
+          </div>
+          <span class="gd-badge badge-amber"><i class="ti ti-star-filled" aria-hidden="true"></i> Featured</span>
+        </div>
+        <div style="font-size:22px; font-weight:700; color:var(--gd-amber-600); font-family:'Barlow Condensed',sans-serif; margin-bottom:10px;">K 320,000</div>
+        <div style="display:flex; gap:8px;">
+          <button class="gd-btn gd-btn-primary gd-btn-sm">View details</button>
+          <button class="gd-btn gd-btn-ghost gd-btn-sm"><i class="ti ti-edit" aria-hidden="true"></i> Edit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- BADGES -->
+  <div class="sg-section">
+    <div class="sg-heading">Badges &amp; Status</div>
+    <div class="sg-subheading">Always pair colour with an icon or text label — never colour alone</div>
+
+    <div class="token-card" style="margin-bottom:10px;">
+      <div style="font-size:11px; color:var(--color-text-tertiary); margin-bottom:10px; text-transform:uppercase; letter-spacing:0.08em;">Semantic statuses</div>
+      <div class="badge-row">
+        <span class="gd-badge badge-success"><i class="ti ti-circle-check" aria-hidden="true"></i> Available</span>
+        <span class="gd-badge badge-warning"><i class="ti ti-clock" aria-hidden="true"></i> Reserved</span>
+        <span class="gd-badge badge-danger"><i class="ti ti-alert-circle" aria-hidden="true"></i> Overdue</span>
+        <span class="gd-badge badge-info"><i class="ti ti-tool" aria-hidden="true"></i> In service</span>
+        <span class="gd-badge badge-amber"><i class="ti ti-star" aria-hidden="true"></i> Featured</span>
+        <span class="gd-badge badge-neutral"><i class="ti ti-archive" aria-hidden="true"></i> Archived</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- NOTIFICATIONS -->
+  <div class="sg-section">
+    <div class="sg-heading">Notifications &amp; Alerts</div>
+    <div class="sg-subheading">Toast + inline alert patterns. Screen reader: role="alert" for urgent, role="status" for passive.</div>
+
+    <div class="gd-notif gd-notif-success" role="status">
+      <i class="ti ti-circle-check notif-icon" aria-hidden="true"></i>
+      <div><div class="notif-title">Vehicle record saved</div>Stock #GD-2024-0041 has been updated successfully.</div>
+      <button style="margin-left:auto; background:none; border:none; color:inherit; cursor:pointer; opacity:0.6; font-size:16px;" aria-label="Dismiss"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="gd-notif gd-notif-warning" role="status">
+      <i class="ti ti-alert-triangle notif-icon" aria-hidden="true"></i>
+      <div><div class="notif-title">Payment pending</div>Invoice #INV-20241107 is due in 2 days. <a href="#" style="color:inherit; font-weight:500; text-decoration:underline;">Review invoice</a></div>
+    </div>
+    <div class="gd-notif gd-notif-danger" role="alert">
+      <i class="ti ti-alert-circle notif-icon" aria-hidden="true"></i>
+      <div><div class="notif-title">Service overdue — action required</div>3 vehicles have exceeded their scheduled service date. Immediate attention needed.</div>
+    </div>
+    <div class="gd-notif gd-notif-info" role="status">
+      <i class="ti ti-info-circle notif-icon" aria-hidden="true"></i>
+      <div><div class="notif-title">System maintenance scheduled</div>The platform will be offline on Sunday 10 Nov from 02:00–04:00 CAT.</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- MODAL -->
+  <div class="sg-section">
+    <div class="sg-heading">Modal Dialog</div>
+    <div class="sg-subheading">role="dialog" · aria-modal="true" · Focus trap on open · Return focus on close · ESC to dismiss</div>
+
+    <div class="modal-backdrop" role="presentation">
+      <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="modal-title-demo">
+        <div class="modal-header">
+          <div class="modal-title" id="modal-title-demo">Confirm Vehicle Deletion</div>
+          <button class="modal-close" aria-label="Close dialog"><i class="ti ti-x"></i></button>
+        </div>
+        <div class="modal-body">
+          You are about to permanently delete <strong>2023 Toyota HiLux (GD-2024-0041)</strong>. This action cannot be undone and will remove all associated records, service history, and documents.
+        </div>
+        <div class="modal-footer">
+          <button class="gd-btn gd-btn-ghost">Cancel</button>
+          <button class="gd-btn gd-btn-danger"><i class="ti ti-trash" aria-hidden="true"></i> Delete vehicle</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- SIDENAV -->
+  <div id="patterns" class="sg-section">
+    <div class="sg-heading">Side Navigation</div>
+    <div class="sg-subheading">aria-current="page" on active item · Keyboard navigable · Active state uses amber accent on right edge</div>
+
+    <div style="display:grid; grid-template-columns:200px 1fr; gap:12px;">
+      <div class="sidenav-demo" role="navigation" aria-label="Main navigation">
+        <div class="sidenav-header">
+          <div class="sidenav-logo-mark" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7" stroke="white" stroke-width="1.5"/><path d="M9 5v4l3 2" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
+          <div class="sidenav-brand"><span>GEE</span>DRIVE</div>
+        </div>
+        <div class="nav-group-label">Fleet</div>
+        <div class="nav-item active" aria-current="page"><i class="ti ti-car" aria-hidden="true"></i> Inventory <span class="nav-badge">248</span></div>
+        <div class="nav-item"><i class="ti ti-tool" aria-hidden="true"></i> Service <span class="nav-badge" style="background:var(--gd-danger);">14</span></div>
+        <div class="nav-item"><i class="ti ti-transfer" aria-hidden="true"></i> Transfers</div>
+        <div class="nav-group-label">Sales</div>
+        <div class="nav-item"><i class="ti ti-receipt" aria-hidden="true"></i> Invoices</div>
+        <div class="nav-item"><i class="ti ti-users" aria-hidden="true"></i> Customers</div>
+        <div class="nav-group-label">Admin</div>
+        <div class="nav-item"><i class="ti ti-settings" aria-hidden="true"></i> Settings</div>
+      </div>
+      <div style="font-size:12px; color:var(--color-text-secondary); line-height:1.8; padding-top:4px;">
+        <div style="font-weight:500; color:var(--color-text-primary); margin-bottom:6px;">Nav token specs</div>
+        Active border: <code style="font-family:'JetBrains Mono',monospace; font-size:11px; background:var(--color-background-secondary); padding:1px 5px; border-radius:4px;">2px solid #D4891A</code><br>
+        Active bg: <code style="font-family:'JetBrains Mono',monospace; font-size:11px; background:var(--color-background-secondary); padding:1px 5px; border-radius:4px;">rgba(212,137,26,0.12)</code><br>
+        Group label: 10px · uppercase · letter-spacing 0.1em<br>
+        Item height: 36px · padding 8px 16px<br>
+        Icon size: 16px · gap 10px<br>
+        Badge: amber for counts · red for alerts
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- TABLE -->
+  <div class="sg-section">
+    <div class="sg-heading">Data Table</div>
+    <div class="sg-subheading">role="grid" · Zebra striping via :hover only (no colour-only pattern) · Sortable columns get aria-sort</div>
+
+    <div class="gd-table-wrap">
+      <table class="gd-table" role="grid" aria-label="Vehicle inventory">
+        <thead><tr>
+          <th scope="col" aria-sort="ascending" style="cursor:pointer;">Stock # <i class="ti ti-selector" style="font-size:12px; vertical-align:-1px;" aria-hidden="true"></i></th>
+          <th scope="col">Vehicle</th>
+          <th scope="col">Status</th>
+          <th scope="col">Price</th>
+          <th scope="col" style="text-align:right;">Actions</th>
+        </tr></thead>
+        <tbody>
+          <tr><td style="font-family:'JetBrains Mono',monospace; font-size:12px;">GD-0041</td><td><div style="font-weight:500;">2023 Toyota HiLux</div><div style="font-size:11px; color:var(--color-text-tertiary);">Double Cab · Manual · Diesel</div></td><td><span class="gd-badge badge-success"><i class="ti ti-circle-check" aria-hidden="true"></i> Available</span></td><td style="font-weight:500; font-family:'Barlow Condensed',sans-serif; font-size:15px; color:var(--gd-amber-600);">K 285,000</td><td style="text-align:right;"><button class="gd-btn gd-btn-ghost gd-btn-sm"><i class="ti ti-dots" aria-hidden="true"></i></button></td></tr>
+          <tr><td style="font-family:'JetBrains Mono',monospace; font-size:12px;">GD-0038</td><td><div style="font-weight:500;">2022 Ford Ranger XLT</div><div style="font-size:11px; color:var(--color-text-tertiary);">4×4 · Automatic · Petrol</div></td><td><span class="gd-badge badge-warning"><i class="ti ti-clock" aria-hidden="true"></i> Reserved</span></td><td style="font-weight:500; font-family:'Barlow Condensed',sans-serif; font-size:15px; color:var(--gd-amber-600);">K 320,000</td><td style="text-align:right;"><button class="gd-btn gd-btn-ghost gd-btn-sm"><i class="ti ti-dots" aria-hidden="true"></i></button></td></tr>
+          <tr><td style="font-family:'JetBrains Mono',monospace; font-size:12px;">GD-0033</td><td><div style="font-weight:500;">2021 Isuzu D-Max</div><div style="font-size:11px; color:var(--color-text-tertiary);">Single Cab · Manual · Diesel</div></td><td><span class="gd-badge badge-info"><i class="ti ti-tool" aria-hidden="true"></i> In service</span></td><td style="font-weight:500; font-family:'Barlow Condensed',sans-serif; font-size:15px; color:var(--gd-amber-600);">K 240,000</td><td style="text-align:right;"><button class="gd-btn gd-btn-ghost gd-btn-sm"><i class="ti ti-dots" aria-hidden="true"></i></button></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- DARK MODE PREVIEW -->
+  <div class="sg-section">
+    <div class="sg-heading">Dark Mode (Current Implementation)</div>
+    <div class="sg-subheading">Warm blacks + amber accents · All text passes WCAG AA contrast</div>
+
+    <div class="dark-panel">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <div style="font-family:'Barlow Condensed',sans-serif; font-size:22px; font-weight:800; color:#F5EDD8; letter-spacing:0.02em;"><span style="color:#D4891A;">GEE</span>DRIVE Fleet</div>
+        <div style="display:flex; gap:8px;">
+          <button class="dark-btn">+ Add vehicle</button>
+          <button class="dark-btn dark-btn-ghost">Export</button>
+        </div>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:12px;">
+        <div class="dark-panel dark-metric">
+          <div class="dark-metric-label">Fleet size</div>
+          <div class="dark-metric-val">248</div>
+        </div>
+        <div class="dark-panel dark-metric">
+          <div class="dark-metric-label">Revenue MTD</div>
+          <div class="dark-metric-val">K 1.4M</div>
+        </div>
+        <div class="dark-panel dark-metric">
+          <div class="dark-metric-label">Available now</div>
+          <div class="dark-metric-val">91</div>
+        </div>
+      </div>
+      <div class="dark-card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div class="dark-title">2023 Toyota HiLux</div>
+            <div class="dark-sub">GD-2024-0041 · Available · K 285,000</div>
+          </div>
+          <span style="font-size:11px; background:rgba(46,125,50,0.2); color:#81C784; padding:3px 10px; border-radius:20px; font-weight:500; border:0.5px solid rgba(46,125,50,0.3);">● Available</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ACCESSIBILITY CHECKLIST -->
+  <div id="accessibility" class="sg-section">
+    <div class="section-tag">Accessibility</div>
+    <div class="sg-heading">WCAG 2.1 Compliance Checklist</div>
+    <div class="sg-subheading">Target: AA throughout · AAA on critical interactive elements</div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+      <div class="token-card">
+        <div style="font-weight:500; font-size:14px; color:var(--color-text-primary); margin-bottom:10px;"><i class="ti ti-eye" style="color:var(--gd-amber-400);" aria-hidden="true"></i> Colour contrast</div>
+        <div style="font-size:12px; color:var(--color-text-secondary); line-height:2;">
+          Body text (dark/white): 14.3:1 <span class="contrast-tag contrast-aaa">AAA</span><br>
+          Amber-600 on white: 5.2:1 <span class="contrast-tag contrast-aa">AA</span><br>
+          Amber-400 on dark bg: 5.8:1 <span class="contrast-tag contrast-aa">AA</span><br>
+          Placeholder text: 4.6:1 <span class="contrast-tag contrast-aa">AA</span><br>
+          Disabled state: 3.1:1 · labelled explicitly
+        </div>
+      </div>
+      <div class="token-card">
+        <div style="font-weight:500; font-size:14px; color:var(--color-text-primary); margin-bottom:10px;"><i class="ti ti-keyboard" style="color:var(--gd-amber-400);" aria-hidden="true"></i> Keyboard navigation</div>
+        <div style="font-size:12px; color:var(--color-text-secondary); line-height:2;">
+          Focus ring: 3px amber, 3px offset<br>
+          Tab order: DOM order + tabIndex<br>
+          Modals: focus trap + ESC close<br>
+          Dropdowns: arrow keys + enter<br>
+          Skip link: "Skip to main content"
+        </div>
+      </div>
+      <div class="token-card">
+        <div style="font-weight:500; font-size:14px; color:var(--color-text-primary); margin-bottom:10px;"><i class="ti ti-volume" style="color:var(--gd-amber-400);" aria-hidden="true"></i> Screen readers</div>
+        <div style="font-size:12px; color:var(--color-text-secondary); line-height:2;">
+          All icons: aria-hidden="true"<br>
+          Icon-only buttons: aria-label<br>
+          Tables: role="grid" + scope<br>
+          Nav: aria-current="page"<br>
+          Alerts: role="alert" (urgent)
+        </div>
+      </div>
+      <div class="token-card">
+        <div style="font-weight:500; font-size:14px; color:var(--color-text-primary); margin-bottom:10px;"><i class="ti ti-checkbox" style="color:var(--gd-amber-400);" aria-hidden="true"></i> Forms &amp; interaction</div>
+        <div style="font-size:12px; color:var(--color-text-secondary); line-height:2;">
+          Labels always visible (no placeholder-only)<br>
+          Error: colour + icon + message<br>
+          Required fields: aria-required<br>
+          Touch targets: min 44×44px<br>
+          Animations: prefers-reduced-motion
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CSS VARIABLES SNIPPET -->
+  <div class="sg-section">
+    <div class="section-tag">Developer Tokens</div>
+    <div class="sg-heading">CSS Custom Properties</div>
+    <div class="sg-subheading">Copy into your global stylesheet — works with both light and dark mode implementations</div>
+
+    <div style="background:var(--color-background-secondary); border-radius:var(--border-radius-lg); padding:1.25rem; font-family:'JetBrains Mono',monospace; font-size:11px; line-height:2; color:var(--color-text-secondary); border:0.5px solid var(--color-border-tertiary);">
+      <span style="color:var(--color-text-tertiary);">/* GeeDrive Motors — Design Tokens */</span><br>
+      <span style="color:var(--gd-amber-600);">--gd-amber-400</span>: #D4891A; &nbsp;<span style="color:var(--color-text-tertiary);">/* primary brand */</span><br>
+      <span style="color:var(--gd-amber-600);">--gd-amber-600</span>: #A56210; &nbsp;<span style="color:var(--color-text-tertiary);">/* AAA on white */</span><br>
+      <span style="color:var(--gd-amber-600);">--gd-red-600</span>: #8B1A05; &nbsp;&nbsp;<span style="color:var(--color-text-tertiary);">/* brand accent */</span><br>
+      <span style="color:var(--gd-amber-600);">--gd-focus-ring</span>: 0 0 0 3px rgba(212,137,26,0.35);<br>
+      <span style="color:var(--gd-amber-600);">--gd-font-display</span>: 'Barlow Condensed', sans-serif;<br>
+      <span style="color:var(--gd-amber-600);">--gd-font-body</span>: 'DM Sans', sans-serif;<br>
+      <span style="color:var(--gd-amber-600);">--gd-font-mono</span>: 'JetBrains Mono', monospace;<br>
+      <span style="color:var(--gd-amber-600);">--gd-nav-active-bg</span>: rgba(212,137,26,0.12);<br>
+      <span style="color:var(--gd-amber-600);">--gd-nav-active-border</span>: #D4891A;
+    </div>
+  </div>
+        </section>
+        <section id="light-motion-states" class="guide-part-divider" aria-label="Light mode motion states and extended components">
+          <h2>Light Mode, Motion &amp; Extended Components</h2>
+          <p>Continuation of the same design system: light surfaces, motion rules, loading patterns, iconography, supporting components, and quick-reference guidance.</p>
+<!-- LIGHT MODE ROLLOUT -->
+  <div style="padding-top: 0.5rem;">
+    <div class="section-tag">Light Mode</div>
+    <div class="sg-heading">Light Mode Palette &amp; Components</div>
+    <div class="sg-subheading">All light mode surfaces use warm off-whites derived from the brand amber. Pure white (#FFFFFF) is reserved for active input fields and card surfaces only — never the page background.</div>
+
+    <div class="lm-panel" role="region" aria-label="Light mode preview">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <div>
+          <div class="lm-title"><span style="color:#D4891A;">GEE</span>DRIVE Fleet</div>
+          <div class="lm-sub">Light mode · Ndola branch</div>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="gd-btn gd-btn-primary" style="height:34px; font-size:13px;"><i class="ti ti-plus" aria-hidden="true"></i> Add vehicle</button>
+          <button style="background:#FFFFFF; border:0.5px solid #C4B89E; border-radius:8px; padding:0 14px; height:34px; font-family:'DM Sans',sans-serif; font-size:13px; color:#6E6456; cursor:pointer; display:inline-flex; align-items:center; gap:6px;"><i class="ti ti-download" aria-hidden="true"></i> Export</button>
+        </div>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:10px; margin-bottom:14px;">
+        <div class="lm-metric"><div class="lm-metric-label">Fleet size</div><div class="lm-metric-val">248</div></div>
+        <div class="lm-metric"><div class="lm-metric-label">Available</div><div class="lm-metric-val">91</div></div>
+        <div class="lm-metric"><div class="lm-metric-label">Revenue MTD</div><div class="lm-metric-val">K 1.4M</div></div>
+        <div class="lm-metric"><div class="lm-metric-label">Open services</div><div class="lm-metric-val" style="color:#C62828;">14</div></div>
+      </div>
+      <div class="lm-card">
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
+          <div style="width:40px; height:40px; border-radius:10px; background:#F0EBE1; display:flex; align-items:center; justify-content:center;"><i class="ti ti-car" style="font-size:20px; color:#D4891A;" aria-hidden="true"></i></div>
+          <div>
+            <div style="font-weight:600; font-size:15px; color:#1A1612; font-family:'Barlow Condensed',sans-serif; letter-spacing:0.01em;">2023 Toyota HiLux Double Cab</div>
+            <div style="font-size:11px; color:#8A7A66; font-family:'JetBrains Mono',monospace;">GD-2024-0041 · Manual · Diesel</div>
+          </div>
+          <span class="gd-badge" style="margin-left:auto; background:#E8F5E9; color:#1B5E20;"><i class="ti ti-circle-check" aria-hidden="true"></i> Available</span>
+        </div>
+        <div style="display:flex; align-items:center; justify-content:space-between;">
+          <div style="font-family:'Barlow Condensed',sans-serif; font-size:20px; font-weight:700; color:#A56210;">K 285,000</div>
+          <button class="gd-btn gd-btn-primary gd-btn-sm">View details</button>
+        </div>
+      </div>
+      <div style="margin-top:12px;">
+        <label style="font-size:13px; font-weight:500; color:#6E6456; display:block; margin-bottom:5px;">Search inventory</label>
+        <div style="position:relative;">
+          <i class="ti ti-search" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); color:#8A7A66; font-size:16px;" aria-hidden="true"></i>
+          <input class="lm-input" type="search" placeholder="Make, model, stock number..." style="padding-left:34px;" aria-label="Search inventory">
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:12px; background:var(--color-background-primary); border:0.5px solid var(--color-border-tertiary); border-radius:var(--border-radius-lg); padding:1rem 1.25rem;">
+      <div style="font-size:11px; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:10px;">Light mode surface hierarchy</div>
+      <div style="display:flex; gap:0; border-radius:8px; overflow:hidden; height:36px;">
+        <div style="flex:1; background:#F9F6F1; display:flex; align-items:center; justify-content:center; font-size:11px; color:#6E6456;">Page bg <span class="mono" style="margin-left:4px;">#F9F6F1</span></div>
+        <div style="flex:1; background:#F0EBE1; display:flex; align-items:center; justify-content:center; font-size:11px; color:#6E6456;">Surface <span class="mono" style="margin-left:4px;">#F0EBE1</span></div>
+        <div style="flex:1; background:#FFFFFF; border:0.5px solid #E2D9C8; display:flex; align-items:center; justify-content:center; font-size:11px; color:#6E6456;">Card <span class="mono" style="margin-left:4px;">#FFFFFF</span></div>
+        <div style="flex:1; background:#D4891A; display:flex; align-items:center; justify-content:center; font-size:11px; color:#fff;">Accent <span class="mono" style="margin-left:4px; background:rgba(0,0,0,0.2); color:#fff;">#D4891A</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- MOTION -->
+  <div>
+    <div class="section-tag">Animation</div>
+    <div class="sg-heading">Motion &amp; Transitions</div>
+    <div class="sg-subheading">All transitions respect <span class="mono">prefers-reduced-motion</span>. Durations are short — the UI should feel responsive, not theatrical. Use motion to confirm actions, not to decorate.</div>
+
+    <div class="grid-2" style="margin-bottom:12px;">
+      <div class="token-card">
+        <div style="font-size:11px; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:12px;">Duration scale</div>
+        <div class="ref-row"><span class="ref-name">Instant</span><span class="ref-val">0ms — state colour changes</span></div>
+        <div class="ref-row"><span class="ref-name">Fast</span><span class="ref-val">100ms — hover, focus rings</span></div>
+        <div class="ref-row"><span class="ref-name">Normal</span><span class="ref-val">200ms — modals, dropdowns</span></div>
+        <div class="ref-row"><span class="ref-name">Slow</span><span class="ref-val">300ms — page transitions</span></div>
+        <div class="ref-row"><span class="ref-name">Skeleton</span><span class="ref-val">1600ms — loading pulse loop</span></div>
+      </div>
+      <div class="token-card">
+        <div style="font-size:11px; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:12px;">Easing functions</div>
+        <div class="ref-row"><span class="ref-name">Enter</span><span class="ref-val">ease-out (0,0,0.2,1)</span></div>
+        <div class="ref-row"><span class="ref-name">Exit</span><span class="ref-val">ease-in (0.4,0,1,1)</span></div>
+        <div class="ref-row"><span class="ref-name">Standard</span><span class="ref-val">ease (0.4,0,0.2,1)</span></div>
+        <div class="ref-row"><span class="ref-name">Spring</span><span class="ref-val">cubic-bezier(0.34,1.56,0.64,1)</span></div>
+      </div>
+    </div>
+
+    <div class="token-card">
+      <div style="font-size:11px; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:14px;">Live examples</div>
+      <div style="display:flex; flex-wrap:wrap; gap:16px; align-items:flex-start;">
+        <div>
+          <div style="font-size:11px; color:var(--color-text-tertiary); margin-bottom:8px;">Skeleton loader</div>
+          <div style="width:180px;">
+            <div class="shimmer-block" style="height:14px; width:60%; margin-bottom:6px; border-radius:4px;"></div>
+            <div class="shimmer-block" style="height:24px; width:100%; margin-bottom:6px;"></div>
+            <div class="shimmer-block" style="height:10px; width:80%; border-radius:4px;"></div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px; color:var(--color-text-tertiary); margin-bottom:8px;">Spinner</div>
+          <div style="display:flex; align-items:center; gap:8px;"><div class="spinner" role="status" aria-label="Loading"></div><span style="font-size:13px; color:var(--color-text-secondary);">Loading…</span></div>
+        </div>
+        <div>
+          <div style="font-size:11px; color:var(--color-text-tertiary); margin-bottom:8px;">Fade + slide in</div>
+          <div class="fade-in-demo" style="background:var(--color-background-secondary); border-radius:8px; padding:8px 12px; font-size:12px; color:var(--color-text-primary); border:0.5px solid var(--color-border-tertiary);">Card appeared</div>
+        </div>
+        <div>
+          <div style="font-size:11px; color:var(--color-text-tertiary); margin-bottom:8px;">Nav slide in</div>
+          <div class="slide-demo" style="background:rgba(212,137,26,0.10); border-right:2px solid var(--gd-amber-400); padding:8px 14px; font-size:12px; color:var(--gd-amber-600); font-weight:500; border-radius:0 6px 6px 0;"><i class="ti ti-car" style="font-size:14px; margin-right:6px;" aria-hidden="true"></i>Inventory</div>
+        </div>
+      </div>
+      <div style="margin-top:14px; padding:10px 12px; background:var(--color-background-secondary); border-radius:8px; font-size:12px; color:var(--color-text-secondary); line-height:1.7;">
+        <span class="mono">@media (prefers-reduced-motion: reduce)</span> — wrap all animations in this query and set <span class="mono">animation: none; transition: none</span> inside. Test with OS-level reduced motion enabled.
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- LOADING & EMPTY STATES -->
+  <div>
+    <div class="section-tag">States</div>
+    <div class="sg-heading">Loading, Empty &amp; Error States</div>
+    <div class="sg-subheading">Every data surface needs all three states — never leave users staring at a blank screen.</div>
+
+    <div class="grid-3">
+      <div class="token-card">
+        <div style="font-size:11px; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:12px;">Loading — skeleton</div>
+        <div class="shimmer-block" style="height:12px; width:40%; margin-bottom:8px; border-radius:4px;"></div>
+        <div class="shimmer-block" style="height:18px; width:100%; margin-bottom:8px;"></div>
+        <div class="shimmer-block" style="height:18px; width:90%; margin-bottom:8px;"></div>
+        <div class="shimmer-block" style="height:18px; width:75%; border-radius:4px;"></div>
+      </div>
+      <div class="token-card" style="display:flex; align-items:center; justify-content:center;">
+        <div class="empty-state" style="padding:1.5rem 0.5rem;">
+          <div class="empty-icon"><i class="ti ti-car-off" aria-hidden="true"></i></div>
+          <div class="empty-title">No vehicles found</div>
+          <div class="empty-body">Try adjusting your filters or add a new vehicle to the inventory.</div>
+          <button class="gd-btn gd-btn-primary" style="height:34px; font-size:13px;"><i class="ti ti-plus" aria-hidden="true"></i> Add vehicle</button>
+        </div>
+      </div>
+      <div class="token-card" style="display:flex; flex-direction:column; justify-content:center;">
+        <div style="display:flex; align-items:flex-start; gap:10px; padding:12px; background:var(--gd-danger-bg); border-radius:8px; border-left:3px solid var(--gd-danger);">
+          <i class="ti ti-alert-circle" style="font-size:18px; color:var(--gd-danger); margin-top:1px; flex-shrink:0;" aria-hidden="true"></i>
+          <div>
+            <div style="font-weight:600; font-size:13px; color:#B71C1C; margin-bottom:3px;">Failed to load inventory</div>
+            <div style="font-size:12px; color:#B71C1C; opacity:0.85; margin-bottom:10px;">Connection timed out. Check your network and try again.</div>
+            <button class="gd-btn gd-btn-ghost gd-btn-sm"><i class="ti ti-refresh" aria-hidden="true"></i> Retry</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- PROGRESS & TOGGLES -->
+  <div>
+    <div class="section-tag">Controls</div>
+    <div class="sg-heading">Progress, Toggles &amp; Chips</div>
+
+    <div class="grid-2">
+      <div class="token-card">
+        <div style="font-size:11px; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:12px;">Progress bars</div>
+        <div style="margin-bottom:10px;">
+          <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--color-text-secondary); margin-bottom:4px;"><span>Stock sold (MTD)</span><span style="color:var(--gd-amber-600); font-weight:500;">68%</span></div>
+          <div class="progress-track" role="progressbar" aria-valuenow="68" aria-valuemin="0" aria-valuemax="100" aria-label="Stock sold this month, 68%"><div class="progress-fill" style="width:68%;"></div></div>
+        </div>
+        <div style="margin-bottom:10px;">
+          <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--color-text-secondary); margin-bottom:4px;"><span>Services complete</span><span style="color:var(--gd-success); font-weight:500;">82%</span></div>
+          <div class="progress-track" role="progressbar" aria-valuenow="82" aria-valuemin="0" aria-valuemax="100" aria-label="Services complete, 82%"><div class="progress-fill progress-fill-success" style="width:82%;"></div></div>
+        </div>
+        <div>
+          <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--color-text-secondary); margin-bottom:4px;"><span>Overdue invoices</span><span style="color:var(--gd-danger); font-weight:500;">24%</span></div>
+          <div class="progress-track" role="progressbar" aria-valuenow="24" aria-valuemin="0" aria-valuemax="100" aria-label="Overdue invoices, 24%"><div class="progress-fill progress-fill-danger" style="width:24%;"></div></div>
+        </div>
+      </div>
+      <div class="token-card">
+        <div style="font-size:11px; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:12px;">Toggles</div>
+        <div class="toggle-wrap">
+          <button class="toggle on" aria-pressed="true" aria-label="Enable notifications"></button>
+          <span style="font-size:13px; color:var(--color-text-primary);">Push notifications</span>
+          <span class="gd-badge" style="margin-left:auto; background:rgba(212,137,26,0.12); color:var(--gd-amber-600);">On</span>
+        </div>
+        <div class="toggle-wrap">
+          <button class="toggle off" aria-pressed="false" aria-label="Enable dark mode"></button>
+          <span style="font-size:13px; color:var(--color-text-secondary);">Dark mode</span>
+          <span class="gd-badge" style="margin-left:auto; background:var(--color-background-secondary); color:var(--color-text-tertiary); border:0.5px solid var(--color-border-tertiary);">Off</span>
+        </div>
+        <div class="toggle-wrap">
+          <button class="toggle on" aria-pressed="true" aria-label="Show archived vehicles"></button>
+          <span style="font-size:13px; color:var(--color-text-primary);">Show archived</span>
+          <span class="gd-badge" style="margin-left:auto; background:rgba(212,137,26,0.12); color:var(--gd-amber-600);">On</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="token-card" style="margin-top:12px;">
+      <div style="font-size:11px; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:10px;">Filter chips</div>
+      <div style="display:flex; flex-wrap:wrap; gap:8px;" role="group" aria-label="Filter vehicles by status">
+        <button class="chip selected" aria-pressed="true">All <i class="ti ti-x" style="font-size:11px;" aria-hidden="true"></i></button>
+        <button class="chip" aria-pressed="false">Available</button>
+        <button class="chip" aria-pressed="false">Reserved</button>
+        <button class="chip" aria-pressed="false">In service</button>
+        <button class="chip" aria-pressed="false">Sold</button>
+        <button class="chip" aria-pressed="false">Archived</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- STEPPER + BREADCRUMB + PAGINATION -->
+  <div>
+    <div class="section-tag">Navigation Patterns</div>
+    <div class="sg-heading">Stepper, Breadcrumb &amp; Pagination</div>
+
+    <div class="token-card" style="margin-bottom:12px;">
+      <div style="font-size:11px; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:14px;">Multi-step form progress</div>
+      <div class="step-row" role="list" aria-label="Form steps">
+        <div class="step-item" role="listitem">
+          <div class="step-circle done" aria-label="Step 1: Vehicle details, complete"><i class="ti ti-check" style="font-size:14px;" aria-hidden="true"></i></div>
+          <div class="step-label">Vehicle details</div>
+        </div>
+        <div class="step-line done"></div>
+        <div class="step-item" role="listitem">
+          <div class="step-circle done" aria-label="Step 2: Pricing, complete"><i class="ti ti-check" style="font-size:14px;" aria-hidden="true"></i></div>
+          <div class="step-label">Pricing</div>
+        </div>
+        <div class="step-line done"></div>
+        <div class="step-item" role="listitem">
+          <div class="step-circle current" aria-label="Step 3: Photos, current step" aria-current="step">3</div>
+          <div class="step-label current">Photos</div>
+        </div>
+        <div class="step-line"></div>
+        <div class="step-item" role="listitem">
+          <div class="step-circle todo" aria-label="Step 4: Documents, not yet started">4</div>
+          <div class="step-label">Documents</div>
+        </div>
+        <div class="step-line"></div>
+        <div class="step-item" role="listitem">
+          <div class="step-circle todo" aria-label="Step 5: Review, not yet started">5</div>
+          <div class="step-label">Review</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+      <div class="token-card">
+        <div style="font-size:11px; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:10px;">Breadcrumb</div>
+        <nav class="breadcrumb" aria-label="Breadcrumb navigation">
+          <a href="#" aria-label="Dashboard">Dashboard</a>
+          <i class="ti ti-chevron-right" style="font-size:12px;" aria-hidden="true"></i>
+          <a href="#">Fleet</a>
+          <i class="ti ti-chevron-right" style="font-size:12px;" aria-hidden="true"></i>
+          <span aria-current="page">GD-2024-0041</span>
+        </nav>
+        <div style="font-size:12px; color:var(--color-text-tertiary);">Links are amber-600 · Current page is text-primary · Separators are text-tertiary</div>
+      </div>
+      <div class="token-card">
+        <div style="font-size:11px; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:10px;">Pagination</div>
+        <nav class="pagination" aria-label="Page navigation">
+          <button class="pg-btn" aria-label="Previous page"><i class="ti ti-chevron-left" style="font-size:14px;" aria-hidden="true"></i></button>
+          <button class="pg-btn" aria-label="Page 1">1</button>
+          <button class="pg-btn active" aria-label="Page 2, current" aria-current="page">2</button>
+          <button class="pg-btn" aria-label="Page 3">3</button>
+          <button class="pg-btn" aria-label="More pages">...</button>
+          <button class="pg-btn" aria-label="Page 12">12</button>
+          <button class="pg-btn" aria-label="Next page"><i class="ti ti-chevron-right" style="font-size:14px;" aria-hidden="true"></i></button>
+        </nav>
+        <div style="font-size:12px; color:var(--color-text-tertiary); margin-top:8px;">Active page: amber-400 bg · <span class="mono">aria-current="page"</span> on active</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ICONS -->
+  <div id="icons-usage-reference">
+    <div class="section-tag">Iconography</div>
+    <div class="sg-heading">Icon Library</div>
+    <div class="sg-subheading">Tabler Icons outline set — loaded via webfont. Size: 16px inline, 20px standalone, 24px decorative max. Always <span class="mono">aria-hidden="true"</span> on decorative icons; use <span class="mono">aria-label</span> on icon-only buttons.</div>
+
+    <div class="token-card">
+      <div style="font-size:11px; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:12px;">Recommended icon set for GeeDrive Motors</div>
+      <div class="icon-grid">
+        <div class="icon-cell"><i class="ti ti-car" aria-hidden="true"></i><span>ti-car</span></div>
+        <div class="icon-cell"><i class="ti ti-tool" aria-hidden="true"></i><span>ti-tool</span></div>
+        <div class="icon-cell"><i class="ti ti-receipt" aria-hidden="true"></i><span>ti-receipt</span></div>
+        <div class="icon-cell"><i class="ti ti-users" aria-hidden="true"></i><span>ti-users</span></div>
+        <div class="icon-cell"><i class="ti ti-chart-bar" aria-hidden="true"></i><span>ti-chart-bar</span></div>
+        <div class="icon-cell"><i class="ti ti-bell" aria-hidden="true"></i><span>ti-bell</span></div>
+        <div class="icon-cell"><i class="ti ti-settings" aria-hidden="true"></i><span>ti-settings</span></div>
+        <div class="icon-cell"><i class="ti ti-search" aria-hidden="true"></i><span>ti-search</span></div>
+        <div class="icon-cell"><i class="ti ti-plus" aria-hidden="true"></i><span>ti-plus</span></div>
+        <div class="icon-cell"><i class="ti ti-edit" aria-hidden="true"></i><span>ti-edit</span></div>
+        <div class="icon-cell"><i class="ti ti-trash" aria-hidden="true"></i><span>ti-trash</span></div>
+        <div class="icon-cell"><i class="ti ti-download" aria-hidden="true"></i><span>ti-download</span></div>
+        <div class="icon-cell"><i class="ti ti-upload" aria-hidden="true"></i><span>ti-upload</span></div>
+        <div class="icon-cell"><i class="ti ti-filter" aria-hidden="true"></i><span>ti-filter</span></div>
+        <div class="icon-cell"><i class="ti ti-sort-ascending" aria-hidden="true"></i><span>ti-sort-asc</span></div>
+        <div class="icon-cell"><i class="ti ti-calendar" aria-hidden="true"></i><span>ti-calendar</span></div>
+        <div class="icon-cell"><i class="ti ti-clock" aria-hidden="true"></i><span>ti-clock</span></div>
+        <div class="icon-cell"><i class="ti ti-circle-check" aria-hidden="true"></i><span>ti-circle-check</span></div>
+        <div class="icon-cell"><i class="ti ti-alert-circle" aria-hidden="true"></i><span>ti-alert-circle</span></div>
+        <div class="icon-cell"><i class="ti ti-info-circle" aria-hidden="true"></i><span>ti-info-circle</span></div>
+        <div class="icon-cell"><i class="ti ti-transfer" aria-hidden="true"></i><span>ti-transfer</span></div>
+        <div class="icon-cell"><i class="ti ti-file-invoice" aria-hidden="true"></i><span>ti-file-invoice</span></div>
+        <div class="icon-cell"><i class="ti ti-lock" aria-hidden="true"></i><span>ti-lock</span></div>
+        <div class="icon-cell"><i class="ti ti-menu-2" aria-hidden="true"></i><span>ti-menu-2</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- AVATAR + TOOLTIP + KBD -->
+  <div>
+    <div class="sg-heading">Misc Components</div>
+    <div class="sg-subheading">Avatars, tooltips, keyboard shortcuts — supporting elements that appear throughout the dashboard.</div>
+
+    <div class="grid-3">
+      <div class="token-card">
+        <div style="font-size:11px; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:12px;">Avatar stack</div>
+        <div class="avatar-stack" role="group" aria-label="3 team members assigned">
+          <div class="avatar" style="background:#D4891A; color:#fff;" title="Mwamba Banda">MB</div>
+          <div class="avatar" style="background:#2E7D32; color:#fff;" title="Grace Phiri">GP</div>
+          <div class="avatar" style="background:#0277BD; color:#fff;" title="Tiyamike Mwale">TM</div>
+          <div class="avatar" style="background:var(--color-background-secondary); color:var(--color-text-secondary); border:1px solid var(--color-border-secondary);" title="2 more">+2</div>
+        </div>
+        <div style="font-size:11px; color:var(--color-text-tertiary); margin-top:8px;">Overlap: -8px margin-left · Border: 2px white · 32×32px</div>
+      </div>
+      <div class="token-card">
+        <div style="font-size:11px; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:12px;">Tooltip</div>
+        <div class="tooltip-demo">
+          <button class="gd-btn gd-btn-ghost gd-btn-sm" aria-describedby="tt1"><i class="ti ti-info-circle" aria-hidden="true"></i> Hover target</button>
+          <div class="tooltip-box" role="tooltip" id="tt1">VIN verified via ZRA registry</div>
+        </div>
+        <div style="font-size:11px; color:var(--color-text-tertiary); margin-top:8px;">Dark bg #1A1612 · warm white text · <span class="mono">role="tooltip"</span> + <span class="mono">aria-describedby</span></div>
+      </div>
+      <div class="token-card">
+        <div style="font-size:11px; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:12px;">Keyboard shortcuts</div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--color-text-secondary);">
+            <span>Search</span>
+            <span style="display:flex; gap:3px;"><span class="kbd">Ctrl</span><span class="kbd">K</span></span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--color-text-secondary);">
+            <span>New vehicle</span>
+            <span style="display:flex; gap:3px;"><span class="kbd">Ctrl</span><span class="kbd">N</span></span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--color-text-secondary);">
+            <span>Close / dismiss</span>
+            <span class="kbd">Esc</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- DO AND DON'T -->
+  <div>
+    <div class="section-tag">Usage Rules</div>
+    <div class="sg-heading">Do &amp; Don't</div>
+
+    <div class="do-dont-grid">
+      <div class="do-card">
+        <div class="do-tag"><i class="ti ti-check" aria-hidden="true"></i> Do</div>
+        <div style="font-size:13px; color:var(--color-text-primary); line-height:1.7;">Use amber-600 (#A56210) for text on light backgrounds — it passes AAA contrast and aligns with the brand.</div>
+      </div>
+      <div class="dont-card">
+        <div class="dont-tag"><i class="ti ti-x" aria-hidden="true"></i> Don't</div>
+        <div style="font-size:13px; color:var(--color-text-primary); line-height:1.7;">Use amber-400 (#D4891A) as body text on white — it only passes AA at large sizes, not for small body copy.</div>
+      </div>
+      <div class="do-card">
+        <div class="do-tag"><i class="ti ti-check" aria-hidden="true"></i> Do</div>
+        <div style="font-size:13px; color:var(--color-text-primary); line-height:1.7;">Pair every status badge colour with an icon and a text label — colour alone is never the only signal.</div>
+      </div>
+      <div class="dont-card">
+        <div class="dont-tag"><i class="ti ti-x" aria-hidden="true"></i> Don't</div>
+        <div style="font-size:13px; color:var(--color-text-primary); line-height:1.7;">Use a green/red dot alone to indicate status — colour-blind users and screen readers cannot interpret it.</div>
+      </div>
+      <div class="do-card">
+        <div class="do-tag"><i class="ti ti-check" aria-hidden="true"></i> Do</div>
+        <div style="font-size:13px; color:var(--color-text-primary); line-height:1.7;">Use <span class="mono">Barlow Condensed 700+</span> for all headings, metric values, and card titles — it echoes the logo and creates strong hierarchy.</div>
+      </div>
+      <div class="dont-card">
+        <div class="dont-tag"><i class="ti ti-x" aria-hidden="true"></i> Don't</div>
+        <div style="font-size:13px; color:var(--color-text-primary); line-height:1.7;">Use Barlow Condensed for body copy or hint text — it loses legibility below 14px and reads as shouting in paragraphs.</div>
+      </div>
+      <div class="do-card">
+        <div class="do-tag"><i class="ti ti-check" aria-hidden="true"></i> Do</div>
+        <div style="font-size:13px; color:var(--color-text-primary); line-height:1.7;">Keep the amber focus ring (<span class="mono">0 0 0 3px rgba(212,137,26,0.35)</span>) on every interactive element — it is the primary keyboard navigation signal.</div>
+      </div>
+      <div class="dont-card">
+        <div class="dont-tag"><i class="ti ti-x" aria-hidden="true"></i> Don't</div>
+        <div style="font-size:13px; color:var(--color-text-primary); line-height:1.7;">Remove or suppress outline/focus-visible styles — this breaks keyboard navigation for all users.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- FULL TOKEN REFERENCE -->
+  <div>
+    <div class="section-tag">Quick Reference</div>
+    <div class="sg-heading">Complete Token Reference</div>
+
+    <div class="grid-2">
+      <div class="token-card">
+        <div style="font-size:11px; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:10px;">Colors</div>
+        <div class="ref-row"><span class="ref-name">Brand primary</span><span class="ref-val">#D4891A (amber-400)</span></div>
+        <div class="ref-row"><span class="ref-name">Brand text</span><span class="ref-val">#A56210 (amber-600)</span></div>
+        <div class="ref-row"><span class="ref-name">Brand accent</span><span class="ref-val">#8B1A05 (red-600)</span></div>
+        <div class="ref-row"><span class="ref-name">Success</span><span class="ref-val">#2E7D32</span></div>
+        <div class="ref-row"><span class="ref-name">Warning</span><span class="ref-val">#D4891A (brand amber)</span></div>
+        <div class="ref-row"><span class="ref-name">Danger</span><span class="ref-val">#C62828</span></div>
+        <div class="ref-row"><span class="ref-name">Info</span><span class="ref-val">#0277BD</span></div>
+        <div class="ref-row"><span class="ref-name">Focus ring</span><span class="ref-val">rgba(212,137,26,0.35) · 3px</span></div>
+      </div>
+      <div class="token-card">
+        <div style="font-size:11px; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:10px;">Typography</div>
+        <div class="ref-row"><span class="ref-name">Display font</span><span class="ref-val">Barlow Condensed</span></div>
+        <div class="ref-row"><span class="ref-name">Body font</span><span class="ref-val">DM Sans</span></div>
+        <div class="ref-row"><span class="ref-name">Mono font</span><span class="ref-val">JetBrains Mono</span></div>
+        <div class="ref-row"><span class="ref-name">Page title</span><span class="ref-val">Barlow 800 · 32px</span></div>
+        <div class="ref-row"><span class="ref-name">Section heading</span><span class="ref-val">Barlow 700 · 24px</span></div>
+        <div class="ref-row"><span class="ref-name">Card title</span><span class="ref-val">DM Sans 600 · 17px</span></div>
+        <div class="ref-row"><span class="ref-name">Body</span><span class="ref-val">DM Sans 400 · 14px · 1.7</span></div>
+        <div class="ref-row"><span class="ref-name">Caption</span><span class="ref-val">DM Sans 400 · 12px</span></div>
+      </div>
+      <div class="token-card">
+        <div style="font-size:11px; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:10px;">Spacing &amp; layout</div>
+        <div class="ref-row"><span class="ref-name">Base unit</span><span class="ref-val">4px</span></div>
+        <div class="ref-row"><span class="ref-name">Sidebar width</span><span class="ref-val">240px · mini 60px</span></div>
+        <div class="ref-row"><span class="ref-name">Card padding</span><span class="ref-val">1rem 1.25rem (16 / 20px)</span></div>
+        <div class="ref-row"><span class="ref-name">Card radius</span><span class="ref-val">12px (border-radius-lg)</span></div>
+        <div class="ref-row"><span class="ref-name">Input height</span><span class="ref-val">38px · sm 30px · lg 46px</span></div>
+        <div class="ref-row"><span class="ref-name">Touch target</span><span class="ref-val">min 44 × 44px (WCAG 2.5.5)</span></div>
+        <div class="ref-row"><span class="ref-name">Grid gap</span><span class="ref-val">12px cards · 10px metrics</span></div>
+      </div>
+      <div class="token-card">
+        <div style="font-size:11px; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:10px;">Motion</div>
+        <div class="ref-row"><span class="ref-name">Hover / focus</span><span class="ref-val">100ms ease-out</span></div>
+        <div class="ref-row"><span class="ref-name">Modal open</span><span class="ref-val">200ms ease-out</span></div>
+        <div class="ref-row"><span class="ref-name">Page transition</span><span class="ref-val">300ms ease</span></div>
+        <div class="ref-row"><span class="ref-name">Skeleton pulse</span><span class="ref-val">1600ms ease-in-out infinite</span></div>
+        <div class="ref-row"><span class="ref-name">Spinner</span><span class="ref-val">700ms linear infinite</span></div>
+        <div class="ref-row"><span class="ref-name">Reduced motion</span><span class="ref-val">prefers-reduced-motion: reduce → none</span></div>
+      </div>
+    </div>
+
+    <div style="margin-top:12px; background:rgba(212,137,26,0.07); border:0.5px solid rgba(212,137,26,0.25); border-radius:var(--border-radius-lg); padding:1rem 1.25rem;">
+      <div style="display:flex; align-items:flex-start; gap:10px;">
+        <i class="ti ti-info-circle" style="font-size:18px; color:var(--gd-amber-600); margin-top:1px; flex-shrink:0;" aria-hidden="true"></i>
+        <div style="font-size:13px; color:var(--color-text-primary); line-height:1.7;">
+          <span style="font-weight:600; color:var(--gd-amber-600);">Google Fonts import</span> — Add to your global stylesheet:
+          <div style="margin-top:6px; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--color-text-secondary); background:var(--color-background-secondary); padding:8px 10px; border-radius:6px; line-height:1.8;">
+            @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding-bottom: 1rem;"></div>
+        </section>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

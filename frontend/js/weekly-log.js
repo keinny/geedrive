@@ -1,6 +1,10 @@
 import { FleetAPI } from './api.js';
+import { _cache } from './cache.js';
+import { loadCarsData } from './cars.js';
+import { loadDashboardData } from './dashboard.js';
 import { loadCarsData_Init, loadDriversData_Init } from './dropdowns.js';
-import { friendlyError, setSubmitLoading, showToast } from './utils.js';
+import { pagination, setAllLogs, state } from './state.js';
+import { friendlyError, renderPagination, setSubmitLoading, showTableError, showTableSkeleton, showToast } from './utils.js';
 
 let weeklyLogEventsBound = false;
 
@@ -26,9 +30,20 @@ export function setupWeeklyLog() {
 
     document.getElementById('startMileage')?.addEventListener('input', calculateMileageDifference);
     document.getElementById('closingMileage')?.addEventListener('input', calculateMileageDifference);
+    document.querySelectorAll('[data-action="close-weekly-log-modal"]').forEach(btn => {
+        btn.addEventListener('click', closeWeeklyLogModal);
+    });
     ['carPlate','driverName','startMileage','closingMileage','totalRevenue','expenseOnCar','shortage'].forEach(id => {
         document.getElementById(id)?.addEventListener('input', updateLogSummary);
         document.getElementById(id)?.addEventListener('change', updateLogSummary);
+    });
+    document.getElementById('sparesBought')?.addEventListener('input', updateLogSummary);
+    document.getElementById('sparesCost')?.addEventListener('input', updateLogSummary);
+    document.getElementById('fleetForm')?.addEventListener('reset', () => {
+        setTimeout(() => {
+            calculateMileageDifference();
+            updateLogSummary();
+        }, 0);
     });
 }
 
@@ -93,8 +108,16 @@ export function handleWeeklyLogSubmit(event) {
         setSubmitLoading('submitBtn', false);
         if (result.status === 'success') {
             showToast('Log submitted', 'Weekly log saved successfully.', 'success');
+            closeWeeklyLogModal();
+            _cache.invalidate('logs');
+            _cache.invalidate('dashboard');
+            _cache.invalidate('cars');
+            _cache.invalidate('carsAnalytics');
             document.getElementById('fleetForm').reset();
             initializeForm();
+            loadWeeklyLogs();
+            loadDashboardData();
+            loadCarsData().catch(() => {});
         } else {
             showToast('Submission failed', result.message || 'An error occurred.', 'error');
         }
@@ -103,6 +126,78 @@ export function handleWeeklyLogSubmit(event) {
         setSubmitLoading('submitBtn', false);
         showToast('Submission failed', friendlyError(error.message), 'error');
     });
+}
+
+export function openWeeklyLogModal() {
+    document.getElementById('weeklyLogModal')?.classList.add('show');
+    initializeForm();
+    updateLogSummary();
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+export function closeWeeklyLogModal() {
+    document.getElementById('weeklyLogModal')?.classList.remove('show');
+}
+
+export function loadWeeklyLogs() {
+    if (!_cache.isStale('logs') && _cache.logs) {
+        pagination.logs.page = 1;
+        setAllLogs(_cache.logs);
+        populateLogsTable(state.allLogs);
+        return Promise.resolve(state.allLogs);
+    }
+
+    showTableSkeleton('#logsTable tbody', 5);
+
+    return FleetAPI.getLogs()
+        .then(data => {
+            if (data.status !== 'success') throw new Error('Unexpected response shape');
+            setAllLogs(data.logs);
+            _cache.set('logs', data.logs);
+            pagination.logs.page = 1;
+            populateLogsTable(state.allLogs);
+            return state.allLogs;
+        })
+        .catch(error => {
+            showTableError('#logsTable tbody', 5,
+                'Could not load weekly logs',
+                friendlyError(error.message),
+                'loadWeeklyLogs'
+            );
+            throw error;
+        });
+}
+
+export function populateLogsTable(logs) {
+    const tbody = document.querySelector('#logsTable tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    if (!logs || logs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No weekly logs submitted yet.</td></tr>';
+        renderPagination('logs', 0, 1, pagination.logs.pageSize);
+        return;
+    }
+
+    const pageState = pagination.logs;
+    pageState.total = logs.length;
+    const start = (pageState.page - 1) * pageState.pageSize;
+    const pageData = logs.slice(start, start + pageState.pageSize);
+
+    pageData.forEach(log => {
+        const row = document.createElement('tr');
+        const created = log.createdAt ? new Date(log.createdAt).toLocaleString() : 'N/A';
+        row.innerHTML = `
+            <td>${created}</td>
+            <td><strong>${log.driverName || 'N/A'}</strong></td>
+            <td>${log.car || 'N/A'}</td>
+            <td><span class="plate-badge">${log.plateNumber || 'N/A'}</span></td>
+            <td><button class="btn-small btn-view" data-action="view-log-entry" data-log-id="${log.id}">View</button></td>
+        `;
+        tbody.appendChild(row);
+    });
+
+    renderPagination('logs', pagination.logs.total, pagination.logs.page, pagination.logs.pageSize);
 }
 
 
@@ -114,8 +209,9 @@ export function updateLogSummary() {
     const revenue = parseFloat(document.getElementById('totalRevenue')?.value) || 0;
     const expense = parseFloat(document.getElementById('expenseOnCar')?.value) || 0;
     const shortage= parseFloat(document.getElementById('shortage')?.value) || 0;
+    const spares = parseFloat(document.getElementById('sparesCost')?.value) || 0;
     const distance = Math.max(0, close - start);
-    const net = revenue - expense - shortage;
+    const net = revenue - expense - shortage - spares;
 
     const panel = document.getElementById('logSummaryContent');
     if (!panel) return;
@@ -134,6 +230,7 @@ export function updateLogSummary() {
         ${distance > 0 ? `<div class="log-summary-row"><label>Distance</label><span>${distance.toLocaleString()} km</span></div>` : ''}
         ${revenue > 0  ? `<div class="log-summary-row"><label>Revenue</label><span>${fmt(revenue)}</span></div>` : ''}
         ${expense > 0  ? `<div class="log-summary-row"><label>Expenses</label><span>${fmt(expense)}</span></div>` : ''}
+        ${spares > 0  ? `<div class="log-summary-row"><label>Spares</label><span>${fmt(spares)}</span></div>` : ''}
         ${shortage > 0 ? `<div class="log-summary-row"><label>Shortage</label><span style="color:var(--danger)">${fmt(shortage)}</span></div>` : ''}
         <div class="log-summary-net">
             <label>Net Income</label>

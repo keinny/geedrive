@@ -60,3 +60,13 @@ class WeeklyLogResponse(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class WeeklyLogListEntry(BaseModel):
+    id: UUID
+    created_at: datetime
+    driver_name: str
+    car: str
+    plate_number: str
+
+    model_config = {"from_attributes": True}

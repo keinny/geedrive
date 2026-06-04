@@ -38,14 +38,14 @@ FUTURE_DATE = (date.today() + timedelta(days=365)).isoformat()
 
 
 def make_driver_row(**overrides) -> dict:
-    base = {
+    base: dict = {
         "id": str(uuid4()),
         "first_name": "John",
         "last_name": "Banda",
         "email": "john.banda@example.com",
         "phone": "+260971000001",
         "nrc_number": "123456/78/1",
-        "license_number": "DR12345",
+        "license_number": "12345678",
         "license_expiry": FUTURE_DATE,
         "next_of_kin_name": "Mary Banda",
         "next_of_kin_relationship": "Spouse",
@@ -77,7 +77,7 @@ def make_driver_payload(**overrides) -> dict:
         "email": "john.banda@example.com",
         "phone": "+260971000001",
         "nrc_number": "123456/78/1",
-        "license_number": "DR12345",
+        "license_number": "12345678",
         "license_expiry": FUTURE_DATE,
         "next_of_kin_name": "Mary Banda",
         "next_of_kin_relationship": "Spouse",
@@ -230,7 +230,7 @@ class TestRegisterDriver:
 
 class TestListDrivers:
     def test_returns_list_of_drivers(self):
-        rows = [make_driver_row(), make_driver_row(nrc_number="999999/99/9")]
+        rows = [make_driver_row(), make_driver_row(nrc_number="999999/99/1")]
         repo = mock_repo(list_all=rows, get_documents=[])
         inject(repo)
 
