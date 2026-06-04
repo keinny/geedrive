@@ -3,6 +3,7 @@ import { loadDashboardData } from './dashboard.js';
 import { loadDriversData } from './drivers.js';
 import { loadCarsData_Init, loadDriversData_Init } from './dropdowns.js';
 import { resetCarsFilters, resetDriversFilters } from './state.js';
+import { loadWeeklyLogs } from './weekly-log.js';
 
 export function switchTab(tabName, tabLabel) {
     document.querySelectorAll('.nav-item-btn').forEach(btn => btn.classList.remove('active'));
@@ -17,6 +18,7 @@ export function switchTab(tabName, tabLabel) {
     if (breadcrumbLabel) breadcrumbLabel.textContent = tabLabel || tabName;
 
     if (tabName === 'weekly-log') {
+        loadWeeklyLogs().catch(() => {});
         const carsEmpty = document.getElementById('carPlate').options.length <= 1;
         const driversEmpty = document.getElementById('driverName').options.length <= 1;
         if (carsEmpty) loadCarsData_Init().catch(() => {});
@@ -99,5 +101,4 @@ export function setupNavigation() {
         });
     });
 }
-
 

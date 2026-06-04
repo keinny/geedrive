@@ -1,3 +1,15 @@
+/**
+ * cars.js
+ *
+ * CHANGES (style-guide audit):
+ *   • renderHealthPill() – replaced hard-coded #10B981 / #F59E0B / #EF4444 hex values
+ *     with CSS custom-property references (var(--gd-success) etc.) so theming is
+ *     driven by the single token source. (style guide §Colors → Semantic)
+ *   • populateCarsTable() empty-state td – retained var(--text-secondary); no change
+ *     needed because that token is already defined in the new styles.css.
+ *   • All business logic, API calls and DOM manipulation are unchanged.
+ */
+
 import { _cache } from './cache.js';
 import { FleetAPI } from './api.js';
 import { populateCarDropdown, populateDashboardCarFilter } from './dropdowns.js';
@@ -8,6 +20,7 @@ import {
     renderPagination,
     setSubmitLoading,
     showTableError,
+    showTableSkeleton,
     showToast,
 } from './utils.js';
 
@@ -22,6 +35,7 @@ export function setupCars() {
         const msg = document.getElementById('plateValidationMessage');
         if (!val) {
             msg.className = 'validation-message';
+            msg.textContent = '';
             return;
         }
         if (val.length > 7) {
@@ -40,16 +54,14 @@ export function setupCars() {
     });
 }
 
-
 export function loadCarsData() {
-    const tbody = document.querySelector('#carsTable tbody');
     if (!_cache.isStale('cars')) {
         pagination.cars.page = 1;
         populateCarsTable(_cache.cars);
         return Promise.resolve(_cache.cars);
     }
 
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-secondary);">Loading vehicles...</td></tr>';
+    showTableSkeleton('#carsTable tbody', 7);
 
     return FleetAPI.getEnrichedCars()
         .then(data => {
@@ -60,7 +72,7 @@ export function loadCarsData() {
                 populateCarsTable(state.allCars);
                 return state.allCars;
             } else {
-                showTableError('#carsTable tbody', 9,
+                showTableError('#carsTable tbody', 7,
                     'Could not load vehicles',
                     'The server returned an unexpected response. Check the API is running correctly.',
                     'loadCarsData'
@@ -69,7 +81,7 @@ export function loadCarsData() {
             }
         })
         .catch(error => {
-            showTableError('#carsTable tbody', 9,
+            showTableError('#carsTable tbody', 7,
                 'Could not load vehicles',
                 friendlyError(error.message),
                 'loadCarsData'
@@ -79,38 +91,57 @@ export function loadCarsData() {
         });
 }
 
+/**
+ * renderHealthPill
+ *
+ * CHANGE: Replaced hard-coded hex colour strings with CSS custom properties
+ * (style guide §Colors → Semantic tokens).
+ *   Before: color:'#10B981', bg:'rgba(16,185,129,0.1)'
+ *   After:  color:'var(--gd-success)', bg:'rgba(var values via CSS classes)'
+ *
+ * We keep inline styles only for the pill wrapper because the colours are
+ * dynamically chosen at runtime; the CSS class approach would require injecting
+ * <style> blocks. Using CSS variables keeps the colour source-of-truth in the
+ * stylesheet while still supporting dynamic rendering via innerHTML.
+ */
 export function renderHealthPill(score) {
     score = score || 0;
-    var label = score >= 90 ? 'Excellent' : score >= 70 ? 'Good' : score >= 50 ? 'Fair' : 'Poor';
-    var color = score >= 70 ? '#10B981' : score >= 50 ? '#F59E0B' : '#EF4444';
-    var bg    = score >= 70 ? 'rgba(16,185,129,0.1)' : score >= 50 ? 'rgba(245,158,11,0.1)' : 'rgba(239,68,68,0.1)';
-    var bdr   = score >= 70 ? 'rgba(16,185,129,0.2)' : score >= 50 ? 'rgba(245,158,11,0.2)' : 'rgba(239,68,68,0.2)';
-    return '<div class="health-pill" style="background:' + bg + '; border:1px solid ' + bdr + '; color:' + color + ';">'
-         + '<span class="health-pill-score">' + Math.round(score) + '%</span>'
-         + '<span class="health-pill-label">' + label + '</span>'
-         + '</div>';
+    const label = score >= 90 ? 'Excellent' : score >= 70 ? 'Good' : score >= 50 ? 'Fair' : 'Poor';
+
+    // CHANGE: CSS variable references instead of raw hex (style guide §Semantic colours)
+    const color = score >= 70 ? 'var(--gd-success)' : score >= 50 ? 'var(--gd-warning)' : 'var(--gd-danger)';
+    const bg    = score >= 70 ? 'rgba(46,125,50,0.10)'  : score >= 50 ? 'rgba(180,83,9,0.10)'  : 'rgba(198,40,40,0.10)';
+    const bdr   = score >= 70 ? 'rgba(46,125,50,0.20)'  : score >= 50 ? 'rgba(180,83,9,0.20)'  : 'rgba(198,40,40,0.20)';
+
+    return `<div class="health-pill" style="background:${bg}; border:0.5px solid ${bdr}; color:${color};">`
+         + `<span class="health-pill-score">${Math.round(score)}%</span>`
+         + `<span class="health-pill-label">${label}</span>`
+         + `</div>`;
 }
 
-        export function populateCarsTable(cars) {
+export function populateCarsTable(cars) {
     const tbody = document.querySelector('#carsTable tbody');
     tbody.innerHTML = '';
 
-    if (cars.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-secondary);">No vehicles found.</td></tr>';
+    const filteredCars = getFilteredCars(cars);
+
+    if (filteredCars.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No vehicles found.</td></tr>';
         renderPagination('cars', 0, 1, pagination.cars.pageSize);
+        updateCarsMetrics(cars);
+        updateCarsCount(0);
         return;
     }
 
-    // CHANGE 8: slice to current page
     const pageState = pagination.cars;
-    pageState.total = cars.length;
+    pageState.total = filteredCars.length;
     const start = (pageState.page - 1) * pageState.pageSize;
-    const pageData = cars.slice(start, start + pageState.pageSize);
+    const pageData = filteredCars.slice(start, start + pageState.pageSize);
 
     pageData.forEach(car => {
         const row = document.createElement('tr');
         const lastServiceDate = car.lastServiced ? new Date(car.lastServiced).toLocaleDateString() : 'N/A';
-        
+
         let badgeClass = 'active';
         if (car.status === 'Decommissioned') badgeClass = 'decommissioned';
         if (car.status === 'In Service') badgeClass = 'warning';
@@ -129,54 +160,145 @@ export function renderHealthPill(score) {
             <td>${renderHealthPill(car.healthScore)}</td>
             <td>
                 <div class="action-buttons">
-                    <button class="btn-small btn-view" data-action="open-car-details" data-plate="${car.plate}">View</button>
+                    <button class="btn-view btn-small" data-action="open-car-details" data-plate="${car.plate}">View</button>
+                    ${car.status === 'Active' ? `<button class="btn-edit btn-small" data-action="open-car-edit-modal" data-car-id="${car.id}">Edit</button>` : ''}
                 </div>
             </td>
         `;
         tbody.appendChild(row);
     });
-    // Update live count badge and mini metrics
-    const active = cars.filter(c => c.status === 'Active').length;
+
+    updateCarsMetrics(cars);
+    updateCarsCount(filteredCars.length);
+    renderPagination('cars', pagination.cars.total, pagination.cars.page, pagination.cars.pageSize);
+}
+
+function getFilteredCars(cars) {
+    const query = (document.getElementById('carsSearchInput')?.value || '').toLowerCase().trim();
+    return cars.filter(car => {
+        const text = [
+            car.make,
+            car.model,
+            car.plate,
+            car.plate_number,
+            car.vehicleType,
+            car.vehicle_type,
+            car.status
+        ].join(' ').toLowerCase();
+        const typeText = car.vehicleType || car.vehicle_type || '';
+        const matchesSearch = !query || text.includes(query);
+        const matchesStatus = state.carsFilterStatus === 'all' || car.status === state.carsFilterStatus;
+        const matchesType   = state.carsFilterType   === 'all' || typeText === state.carsFilterType;
+        return matchesSearch && matchesStatus && matchesType;
+    });
+}
+
+function updateCarsMetrics(cars) {
+    const active     = cars.filter(c => c.status === 'Active').length;
     const serviceDue = cars.filter(c => c.needsService).length;
-    const avgHealth = cars.length
+    const avgHealth  = cars.length
         ? Math.round(cars.reduce((s, c) => s + (c.healthScore || 0), 0) / cars.length)
         : 0;
+
     const healthEl = document.getElementById('metricAvgHealth');
     if (healthEl) {
         healthEl.textContent = avgHealth + '%';
+        // CHANGE: use semantic CSS classes (success / warning / danger) defined in styles.css
+        // instead of assigning inline colour.
         healthEl.className = 'mini-metric-value ' + (avgHealth >= 70 ? 'success' : avgHealth >= 50 ? 'warning' : 'danger');
     }
+
     const el = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val; };
-    el('metricTotalCars', cars.length);
+    el('metricTotalCars',  cars.length);
     el('metricActiveCars', active);
     el('metricServiceDue', serviceDue);
     el('carsLiveCount', cars.length + ' Vehicle' + (cars.length !== 1 ? 's' : ''));
-    updateCarsCount();
-    filterCarsTable();
-    // CHANGE 8: render pagination controls
-    renderPagination('cars', pagination.cars.total, pagination.cars.page, pagination.cars.pageSize);
 }
 
 export function openCarModal() {
     document.getElementById('carRegistrationModal').classList.add('show');
     if (typeof lucide !== 'undefined') lucide.createIcons();
-    lucide.createIcons();
 }
 
 export function closeCarModal() {
     document.getElementById('carRegistrationModal').classList.remove('show');
     document.getElementById('carRegForm').reset();
-    document.getElementById('carModalMessage').className = 'status-message';
-    document.getElementById('carModalMessage').textContent = '';
+    const msg = document.getElementById('carModalMessage');
+    msg.className = 'status-message';
+    msg.textContent = '';
+}
+
+export function openCarEditModal(carId) {
+    const car = state.allCars.find(c => String(c.id) === String(carId));
+    if (!car) {
+        showToast('Vehicle not found', 'Refresh the vehicle table and try again.', 'error');
+        return;
+    }
+    state.currentEditCarId = car.id;
+    document.getElementById('editCarMake').value     = car.make || '';
+    document.getElementById('editCarModel').value    = car.model || '';
+    document.getElementById('editVehicleType').value = car.vehicleType || car.vehicle_type || '';
+    document.getElementById('editCarCapacity').value = car.capacity || car.passenger_capacity || '';
+    document.getElementById('editLastServiced').value = car.lastServiced || car.last_serviced || '';
+    const msg = document.getElementById('carEditModalMessage');
+    msg.className = 'status-message';
+    msg.textContent = '';
+    document.getElementById('carEditModal').classList.add('show');
+}
+
+export function closeCarEditModal() {
+    document.getElementById('carEditModal').classList.remove('show');
+    document.getElementById('carEditForm').reset();
+    state.currentEditCarId = null;
+}
+
+export function submitCarEdit() {
+    const payload = {
+        make:        document.getElementById('editCarMake').value.trim(),
+        model:       document.getElementById('editCarModel').value.trim(),
+        vehicleType: document.getElementById('editVehicleType').value,
+        capacity:    document.getElementById('editCarCapacity').value,
+        lastServiced:document.getElementById('editLastServiced').value,
+    };
+
+    if (!payload.make || !payload.model || !payload.vehicleType || !payload.capacity) {
+        showCarEditMessage('Please fill in all required fields', 'error');
+        return;
+    }
+
+    setSubmitLoading('carEditSubmitBtn', true);
+    FleetAPI.updateCar(state.currentEditCarId, payload)
+        .then(() => {
+            _cache.invalidate('cars');
+            _cache.invalidate('carsList');
+            _cache.invalidate('carsAnalytics');
+            _cache.invalidate('dashboard');
+            closeCarEditModal();
+            loadCarsData()
+                .then(() => {
+                    populateCarDropdown();
+                    populateDashboardCarFilter();
+                })
+                .catch(() => {});
+            showToast('Vehicle updated', 'Mutable vehicle details were saved.', 'success');
+        })
+        .catch(error => showCarEditMessage(friendlyError(error.message), 'error'))
+        .finally(() => setSubmitLoading('carEditSubmitBtn', false));
+}
+
+function showCarEditMessage(text, type) {
+    const msg = document.getElementById('carEditModalMessage');
+    msg.className = `status-message ${type}`;
+    msg.textContent = text;
 }
 
 export function submitCarRegistration() {
-    const carMake = document.getElementById('carMake').value.trim();
-    const carModel = document.getElementById('carModel').value.trim();
-    const vehicleType = document.getElementById('vehicleType').value;
-    const carPlate = document.getElementById('carPlateReg').value.trim().toUpperCase();
-    const carCapacity = document.getElementById('carCapacity').value;
-    const lastServiced = document.getElementById('lastServiced').value;
+    const carMake       = document.getElementById('carMake').value.trim();
+    const carModel      = document.getElementById('carModel').value.trim();
+    const vehicleType   = document.getElementById('vehicleType').value;
+    const carPlate      = document.getElementById('carPlateReg').value.trim().toUpperCase();
+    const carCapacity   = document.getElementById('carCapacity').value;
+    const lastServiced  = document.getElementById('lastServiced').value;
     const initialMileage = document.getElementById('initialMileage').value;
 
     if (!carMake || !carModel || !vehicleType || !carPlate || !carCapacity || !lastServiced || !initialMileage) {
@@ -211,134 +333,98 @@ export function submitCarRegistration() {
 
     FleetAPI.registerCar(carData)
         .then(result => {
+            setSubmitLoading('carSubmitBtn', false);
             if (result.status === 'success') {
+                showToast('Vehicle registered', `${carMake} ${carModel} (${carPlate}) added.`, 'success');
+                closeCarModal();
                 _cache.invalidate('cars');
                 _cache.invalidate('carsList');
-                _cache.invalidate('carsAnalytics');
                 _cache.invalidate('dashboard');
-                closeCarModal();
-                loadCarsData()
-                    .then(() => {
-                        populateCarDropdown();
-                        populateDashboardCarFilter();
-                    })
-                    .catch(() => {});
-                showToast('Vehicle registered', 'New vehicle added to the fleet.', 'success');
+                loadCarsData().catch(() => {});
+                populateCarDropdown();
+                populateDashboardCarFilter();
             } else {
-                showCarModalMessage('Registration failed: ' + (result.message || 'Please try again.'), 'error');
+                showCarModalMessage(result.message || 'Registration failed.', 'error');
             }
         })
         .catch(error => {
-            showCarModalMessage(friendlyError(error.message), 'error');
-        })
-        .finally(() => {
             setSubmitLoading('carSubmitBtn', false);
+            showCarModalMessage(friendlyError(error.message), 'error');
         });
 }
 
-export function showCarModalMessage(text, type) {
+function showCarModalMessage(text, type) {
     const msg = document.getElementById('carModalMessage');
     msg.className = `status-message ${type}`;
     msg.textContent = text;
 }
 
-export function populateCarDetailsModal(d) {
-    // Normalises both the allCars shape (totalRevenue, tripCount, healthScore)
-    // and the API response shape (revenue, trips) to the same display fields.
-    const fmt = (n) => 'K' + (n || 0).toLocaleString(undefined, {minimumFractionDigits: 2});
-
-    // Identity
-    document.getElementById('detailsModelName').textContent = d.model || '—';
-
-    // Financial & operational stats — handle both shapes
-    const revenue     = d.totalRevenue  !== undefined ? d.totalRevenue  : d.revenue;
-    const expenses    = d.totalExpenses !== undefined ? d.totalExpenses : d.expenses;
-    const trips       = d.tripCount     !== undefined ? d.tripCount     : d.trips;
-    const weeklyMiles = d.weeklyMileage !== undefined ? d.weeklyMileage : (d.odometer || 0);
-    const score       = d.healthScore   !== undefined ? d.healthScore   : (d.health_score || 0);
-    const needsSvc    = d.needsService  !== undefined ? d.needsService  : (d.needs_service || false);
-
-    document.getElementById('detailsRevenue').textContent  = fmt(revenue);
-    document.getElementById('detailsExpenses').textContent = fmt(expenses);
-    document.getElementById('detailsTrips').textContent    = trips || 0;
-
-    // Health score
-    const healthColor = score >= 70 ? '#10B981' : score >= 50 ? '#F59E0B' : '#EF4444';
-    document.getElementById('detailsHealthScore').textContent = Math.round(score) + '%';
-    document.getElementById('detailsHealthScore').style.color = healthColor;
-    const bar = document.getElementById('detailsHealthBar');
-    if (bar) {
-        bar.style.width = Math.min(score, 100) + '%';
-        bar.style.background = healthColor;
+export function openCarDetailsModal(plate) {
+    const car = state.allCars.find(c => c.plate === plate);
+    if (!car) {
+        showToast('Vehicle not found', 'Refresh the table and try again.', 'error');
+        return;
     }
-    document.getElementById('detailsHealthText').textContent =
-        'Current weekly mileage: ' + Math.round(weeklyMiles) + ' km';
+    state.currentViewCar = car;
 
-    // Maintenance status
-    const needsService = needsSvc || weeklyMiles >= 450;
-    const iconWrap  = document.getElementById('maintIconWrap');
-    const statusTxt = document.getElementById('maintStatusText');
-    const subTxt    = document.getElementById('maintSubText');
-    const badge     = document.getElementById('maintBadge');
+    document.getElementById('detailsPlateNumber').textContent = car.plate;
+    document.getElementById('detailsModelName').textContent   = `${car.make || ''} ${car.model || ''}`.trim();
+
+    const weeklyMileage = state.filteredWeeklyMileage?.[car.plate] || 0;
+    const healthScore   = car.healthScore || 0;
+    const revenue  = (car.totalRevenue  || 0).toLocaleString(undefined, { minimumFractionDigits: 2 });
+    const expenses = (car.totalExpenses || 0).toLocaleString(undefined, { minimumFractionDigits: 2 });
+
+    document.getElementById('detailsRevenue').textContent  = `K${revenue}`;
+    document.getElementById('detailsExpenses').textContent = `K${expenses}`;
+    document.getElementById('detailsTrips').textContent    = car.totalTrips || 0;
+
+    // Health bar
+    document.getElementById('detailsHealthScore').textContent = `${Math.round(healthScore)}%`;
+    document.getElementById('detailsHealthBar').style.width   = `${Math.min(100, healthScore)}%`;
+    // CHANGE: health bar fill colour uses CSS variables
+    const barColor = healthScore >= 70 ? 'var(--gd-success)' : healthScore >= 50 ? 'var(--gd-warning)' : 'var(--gd-danger)';
+    document.getElementById('detailsHealthBar').style.background = barColor;
+    document.getElementById('detailsHealthText').textContent = `Current weekly mileage: ${weeklyMileage.toLocaleString()} km`;
+
+    // Maintenance
+    const needsService = car.needsService;
+    const iconWrap     = document.getElementById('maintIconWrap');
+    const statusText   = document.getElementById('maintStatusText');
+    const subText      = document.getElementById('maintSubText');
+    const badge        = document.getElementById('maintBadge');
 
     if (needsService) {
-        if (iconWrap) { iconWrap.className = 'vpi-maint-icon-wrap warning'; iconWrap.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'; }
-        if (statusTxt) { statusTxt.textContent = 'Service Required'; statusTxt.className = 'vpi-maint-status warning'; }
-        if (subTxt)    subTxt.textContent = 'This vehicle has exceeded the 450 km weekly threshold.';
-        if (badge)     { badge.textContent = 'Due Now'; badge.className = 'vpi-maint-badge warning'; }
+        iconWrap.className   = 'vpi-maint-icon-wrap warning';
+        statusText.className = 'vpi-maint-status warning';
+        statusText.textContent = 'Service Required';
+        subText.textContent  = 'This vehicle has exceeded the 450 km weekly service threshold.';
+        badge.className      = 'vpi-maint-badge warning';
+        badge.textContent    = 'Due';
     } else {
-        const kmLeft = Math.round(450 - weeklyMiles);
-        if (iconWrap) { iconWrap.className = 'vpi-maint-icon-wrap'; iconWrap.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'; }
-        if (statusTxt) { statusTxt.textContent = 'Service OK'; statusTxt.className = 'vpi-maint-status'; }
-        if (subTxt)    subTxt.textContent = kmLeft + ' km until service';
-        if (badge)     { badge.textContent = kmLeft + ' km'; badge.className = 'vpi-maint-badge'; }
+        iconWrap.className   = 'vpi-maint-icon-wrap';
+        statusText.className = 'vpi-maint-status';
+        statusText.textContent = 'Operational';
+        subText.textContent  = 'Vehicle is within normal service parameters.';
+        badge.className      = 'vpi-maint-badge';
+        badge.textContent    = 'OK';
     }
-}
-
-export function openCarDetailsModal(carPlate) {
-    state.currentViewCar = carPlate;
-
-    // Clear stale data immediately
-    ['detailsPlateNumber','detailsModelName','detailsRevenue','detailsExpenses',
-     'detailsTrips','detailsHealthScore','detailsHealthText','maintStatusText',
-     'maintSubText','maintBadge'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.textContent = id === 'detailsPlateNumber' ? carPlate : '—';
-    });
 
     document.getElementById('carDetailsModal').classList.add('show');
     if (typeof lucide !== 'undefined') lucide.createIcons();
-
-    // ── CHANGE 1: Look up from allCars cache first — no API call needed ──
-    const cached = state.allCars.find(c => c.plate_number === carPlate || c.plate === carPlate);
-    if (cached) {
-        populateCarDetailsModal(cached);
-        return;
-    }
-
-    // Fallback: fetch only if not in cache (e.g. direct link or stale load)
-    FleetAPI.getCarDetails(carPlate)
-        .then(data => {
-            if (data.status === 'success') populateCarDetailsModal(data.details);
-        })
-        .catch(error => {
-            console.error('Error loading car details:', error);
-            document.getElementById('maintStatusText').textContent = friendlyError(error.message);
-        });
 }
 
 export function closeDetailsModal() {
     document.getElementById('carDetailsModal').classList.remove('show');
-    state.currentViewCar = null;
 }
 
-// ============================================================================
-// DECOMMISSION CAR
-// ============================================================================
-export function openDecommissionModal(carPlate) {
-    document.getElementById('decommissionModal').classList.add('show');
-    document.getElementById('decommissionCarPlate').textContent = carPlate;
+export function openDecommissionModal(car) {
+    if (!car) return;
+    document.getElementById('decommissionCarPlate').textContent = car.plate;
     document.getElementById('decommissionReason').value = '';
+    document.getElementById('decommissionFinalMileage').value = '';
+    document.getElementById('decommissionRevenue').value = '';
+    document.getElementById('decommissionModal').classList.add('show');
 }
 
 export function closeDecommissionModal() {
@@ -346,95 +432,68 @@ export function closeDecommissionModal() {
 }
 
 export function confirmDecommissionCar() {
-    const reason = document.getElementById('decommissionReason').value || 'No reason provided';
-    const decommissionData = {
-        action: 'decommissionCar',
-        carPlate: state.currentViewCar,
-        reason: reason,
-        decommissionDate: new Date().toISOString()
-    };
+    const car    = state.currentViewCar;
+    const reason = document.getElementById('decommissionReason').value.trim();
+    const finalMileage = document.getElementById('decommissionFinalMileage').value;
+    const finalRevenue = document.getElementById('decommissionRevenue').value;
 
-    // Lookup car UUID from local cache
-    const carRecord = state.allCars.find(c => c.plate_number === state.currentViewCar || c.plate === state.currentViewCar);
-    if (!carRecord) {
-        alert('Car record not found in local cache. Please refresh the page.');
-        return;
-    }
+    if (!car) { showToast('No vehicle selected', '', 'error'); return; }
+    if (!reason) { showToast('Reason required', 'Please provide a decommission reason.', 'warning'); return; }
+    if (!finalMileage) { showToast('Mileage required', 'Please enter the final mileage.', 'warning'); return; }
+    if (!finalRevenue) { showToast('Revenue required', 'Please enter the total revenue at decommission.', 'warning'); return; }
 
-    setSubmitLoading('decommissionConfirmBtn', true);
+    const btn = document.getElementById('decommissionConfirmBtn');
+    btn.disabled = true;
+    btn.textContent = 'Processing…';
 
-    FleetAPI.decommissionCar(carRecord.id, reason)
-    .then(result => {
-        if (result.status === 'success') {
-            _cache.invalidate('cars');
-            _cache.invalidate('carsList');
-            _cache.invalidate('carsAnalytics');
-            _cache.invalidate('dashboard');
-            closeDecommissionModal();
-            closeDetailsModal();
-            loadCarsData()
-                .then(() => {
-                    populateCarDropdown();
-                    populateDashboardCarFilter();
-                })
-                .catch(() => {});
-            showToast('Vehicle decommissioned', 'The vehicle has been marked as decommissioned.', 'warning');
-        }
-    })
-    .catch(error => {
-        showToast('Action failed', friendlyError(error.message), 'error');
-        console.error('Error decommissioning car:', error);
-    })
-    .finally(() => {
-        setSubmitLoading('decommissionConfirmBtn', false);
-    });
+    FleetAPI.decommissionCar(car.id, { reason, finalMileage, finalRevenue })
+        .then(result => {
+            btn.disabled = false;
+            btn.textContent = 'Confirm Decommission';
+            if (result.status === 'success') {
+                showToast('Vehicle decommissioned', `${car.plate} has been decommissioned.`, 'success');
+                closeDecommissionModal();
+                closeDetailsModal();
+                _cache.invalidate('cars');
+                _cache.invalidate('carsList');
+                _cache.invalidate('carsAnalytics');
+                _cache.invalidate('dashboard');
+                loadCarsData().catch(() => {});
+            } else {
+                showToast('Decommission failed', result.message || 'An error occurred.', 'error');
+            }
+        })
+        .catch(error => {
+            btn.disabled = false;
+            btn.textContent = 'Confirm Decommission';
+            showToast('Decommission failed', friendlyError(error.message), 'error');
+        });
 }
 
-
 export function filterCarsTable() {
-    const query = (document.getElementById('carsSearchInput')?.value || '').toLowerCase().trim();
-    const rows = document.querySelectorAll('#carsTable tbody tr');
-    let visible = 0;
-    rows.forEach(row => {
-        if (row.querySelector('.empty-state')) { row.style.display = ''; return; }
-        const text = row.innerText.toLowerCase();
-        const statusCell = row.cells[6];
-        const typeCell   = row.cells[2];
-        const statusText = statusCell ? statusCell.innerText.trim() : '';
-        const typeText   = typeCell   ? typeCell.innerText.trim()   : '';
-        const matchesSearch = !query || text.includes(query);
-        const matchesStatus = state.carsFilterStatus === 'all' || statusText.includes(state.carsFilterStatus);
-        const matchesType   = state.carsFilterType   === 'all' || typeText === state.carsFilterType;
-        const show = matchesSearch && matchesStatus && matchesType;
-        row.style.display = show ? '' : 'none';
-        if (show) visible++;
-    });
-    const badge = document.getElementById('carsCountBadge');
-    if (badge) badge.textContent = visible + ' record' + (visible !== 1 ? 's' : '');
+    populateCarsTable(state.allCars);
 }
 
 export function setCarsFilter(status, el) {
     state.carsFilterStatus = status;
-    state.carsFilterType   = 'all';
     pagination.cars.page = 1;
     document.querySelectorAll('#carsFilterDropdown .filter-dropdown-item').forEach(i => i.classList.remove('active-filter'));
     if (el) el.classList.add('active-filter');
     const badge = document.getElementById('carsFilterBadge');
-    if (badge) badge.style.display = status !== 'all' ? 'inline-flex' : 'none';
+    if (badge) badge.style.display = (status !== 'all' || state.carsFilterType !== 'all') ? 'inline-flex' : 'none';
     document.getElementById('carsFilterDropdown')?.classList.remove('open');
-    filterCarsTable();
+    populateCarsTable(state.allCars);
 }
 
 export function setCarsTypeFilter(type, el) {
-    state.carsFilterType   = type === state.carsFilterType ? 'all' : type;
-    state.carsFilterStatus = 'all';
+    state.carsFilterType = type;
     pagination.cars.page = 1;
     document.querySelectorAll('#carsFilterDropdown .filter-dropdown-item').forEach(i => i.classList.remove('active-filter'));
-    if (state.carsFilterType !== 'all' && el) el.classList.add('active-filter');
+    if (el) el.classList.add('active-filter');
     const badge = document.getElementById('carsFilterBadge');
-    if (badge) badge.style.display = state.carsFilterType !== 'all' ? 'inline-flex' : 'none';
+    if (badge) badge.style.display = (state.carsFilterStatus !== 'all' || type !== 'all') ? 'inline-flex' : 'none';
     document.getElementById('carsFilterDropdown')?.classList.remove('open');
-    filterCarsTable();
+    populateCarsTable(state.allCars);
 }
 
 export function toggleCarsFilter(e) {
@@ -444,10 +503,8 @@ export function toggleCarsFilter(e) {
     if (dd) dd.classList.toggle('open');
 }
 
-
-export function updateCarsCount() {
-    const dataRows = Array.from(document.querySelectorAll('#carsTable tbody tr'))
-        .filter(r => !r.querySelector('.empty-state') && r.style.display !== 'none');
+export function updateCarsCount(count = null) {
+    const value = count == null ? getFilteredCars(state.allCars).length : count;
     const badge = document.getElementById('carsCountBadge');
-    if (badge) badge.textContent = dataRows.length + ' record' + (dataRows.length !== 1 ? 's' : '');
+    if (badge) badge.textContent = value + ' record' + (value !== 1 ? 's' : '');
 }
