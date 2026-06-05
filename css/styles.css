@@ -76,6 +76,15 @@
     /* Text – mapped to dark mode values */
     --text-primary:   rgba(255,255,255,0.92);
     --text-secondary: rgba(255,255,255,0.48);
+    --text-heading:   #F5EDD8;
+    --control-border: rgba(255,255,255,0.12);
+    --control-border-hover: rgba(255,255,255,0.3);
+    --text-icon-muted: rgba(255,255,255,0.12);
+    --status-success-text: #81C784;
+    --status-danger-text:  #EF9A9A;
+    --status-warning-text: #FBBF24;
+    --status-info-text:    #81D4FA;
+    --status-amber-text:   var(--gd-amber-200);
 
     /* Surface aliases used by components */
     --bg-dark:   var(--gd-dark-bg);
@@ -92,6 +101,15 @@
     --gd-dark-border-strong: rgba(15, 23, 42, 0.18);
     --text-primary:      rgba(15, 23, 42, 0.92);
     --text-secondary:    rgba(15, 23, 42, 0.68);
+    --text-heading:      rgba(15, 23, 42, 0.96);
+    --control-border:    rgba(15, 23, 42, 0.18);
+    --control-border-hover: rgba(15, 23, 42, 0.28);
+    --text-icon-muted:   rgba(15, 23, 42, 0.28);
+    --status-success-text: #1B5E20;
+    --status-danger-text:  #B71C1C;
+    --status-warning-text: #92400E;
+    --status-info-text:    #01579B;
+    --status-amber-text:   var(--gd-amber-800);
     --bg-dark:           var(--gd-dark-bg);
     --bg-card:           var(--gd-dark-surface);
     --bg-input:          var(--gd-dark-elevated);
@@ -245,7 +263,7 @@ textarea:focus-visible {
     font-size: 18px;
     font-weight: 800;
     letter-spacing: 0.04em;
-    color: #F5EDD8;
+    color: var(--text-heading);
     text-transform: uppercase;
     white-space: nowrap;
 }
@@ -344,7 +362,7 @@ textarea:focus-visible {
 
 .nav-item-btn:hover {
     background: var(--gd-dark-elevated);
-    color: #F5EDD8;
+    color: var(--text-heading);
 }
 
 /* Active state – amber tint + right amber line (style guide §Side Navigation) */
@@ -397,9 +415,9 @@ body:has(.sidebar.collapsed) .main-content-layout {
 }
 
 .breadcrumb-segment       { color: var(--text-secondary); }
-.breadcrumb-separator     { color: rgba(255,255,255,0.2); font-size: 12px; }
+.breadcrumb-separator     { color: var(--gd-dark-border-strong); font-size: 12px; }
 .breadcrumb-segment.current-loc {
-    color: #F5EDD8;
+    color: var(--text-heading);
     font-weight: 600;
 }
 
@@ -499,7 +517,7 @@ button {
 .btn-reset,
 .btn-ghost {
     background: transparent;
-    border: 0.5px solid rgba(255,255,255,0.2);
+    border: 0.5px solid var(--gd-dark-border-strong);
     color: var(--text-secondary);
     padding: 0 16px;
     height: 38px;
@@ -509,8 +527,8 @@ button {
 .btn-reset:hover,
 .btn-ghost:hover {
     background: var(--gd-dark-elevated);
-    color: #F5EDD8;
-    border-color: rgba(255,255,255,0.3);
+    color: var(--text-heading);
+    border-color: var(--control-border-hover);
 }
 
 /* Danger – red fill (style guide §Buttons: gd-btn-danger) */
@@ -568,7 +586,7 @@ button {
     height: 38px;
     padding: 0;
     background: transparent;
-    border: 0.5px solid rgba(255,255,255,0.15);
+    border: 0.5px solid var(--gd-dark-border);
     border-radius: var(--border-radius-md);
     color: var(--text-secondary);
     display: inline-flex;
@@ -581,7 +599,7 @@ button {
 
 .btn-icon-only:hover {
     background: var(--gd-dark-elevated);
-    color: #F5EDD8;
+    color: var(--text-heading);
 }
 
 /* Small table action buttons (view, edit, fire, decommission) */
@@ -698,7 +716,7 @@ button {
     font-size: 16px;
     font-weight: 700;
     letter-spacing: 0.02em;
-    color: #F5EDD8;
+    color: var(--text-heading);
     margin-bottom: 16px;
     display: flex;
     align-items: center;
@@ -721,7 +739,7 @@ button {
     font-size: 22px;
     font-weight: 700;
     letter-spacing: 0.02em;
-    color: #F5EDD8;
+    color: var(--text-heading);
     margin-bottom: 4px;
 }
 
@@ -779,11 +797,11 @@ textarea {
     font-family: var(--gd-font-body);
     font-size: 14px;
     background: var(--gd-dark-elevated);
-    border: 1px solid rgba(255,255,255,0.12);
+    border: 1px solid var(--control-border);
     border-radius: var(--border-radius-md);
     padding: 0 12px;
     height: 38px;
-    color: #F5EDD8;
+    color: var(--text-heading);
     width: 100%;
     outline: none;
     transition: border-color 0.15s, box-shadow 0.15s;
@@ -921,14 +939,14 @@ textarea {
 
 .status-message.success {
     background: rgba(46,125,50,0.12);
-    color: #81C784;
+    color: var(--status-success-text);
     border: 0.5px solid rgba(46,125,50,0.3);
     display: flex;
 }
 
 .status-message.error {
     background: rgba(198,40,40,0.12);
-    color: #EF9A9A;
+    color: var(--status-danger-text);
     border: 0.5px solid rgba(198,40,40,0.3);
     display: flex;
 }
@@ -937,7 +955,7 @@ textarea {
 .file-protocol-warning {
     display: none;
     background: rgba(198,40,40,0.12);
-    color: #EF9A9A;
+    color: var(--status-danger-text);
     border: 0.5px solid rgba(198,40,40,0.3);
     border-radius: var(--border-radius-md);
     padding: 14px 16px;
@@ -947,11 +965,11 @@ textarea {
 }
 
 .file-protocol-warning code {
-    background: rgba(255,255,255,0.08);
+    background: var(--gd-dark-border);
     padding: 2px 6px;
     border-radius: 4px;
     font-family: var(--gd-font-mono);
-    color: #F5EDD8;
+    color: var(--text-heading);
 }
 
 /* ════════════════════════════════════════════════════════════════
@@ -996,7 +1014,7 @@ textarea {
     font-family: var(--gd-font-display);
     font-size: 28px;
     font-weight: 700;
-    color: #F5EDD8;
+    color: var(--text-heading);
     line-height: 1.1;
 }
 
@@ -1033,7 +1051,7 @@ textarea {
     font-family: var(--gd-font-display);
     font-size: 28px;
     font-weight: 700;
-    color: #F5EDD8;
+    color: var(--text-heading);
     line-height: 1;
 }
 
@@ -1073,7 +1091,7 @@ textarea {
     font-family: var(--gd-font-display);
     font-size: 24px;
     font-weight: 700;
-    color: #F5EDD8;
+    color: var(--text-heading);
     display: block;
 }
 
@@ -1106,25 +1124,25 @@ textarea {
 }
 
 /* Semantic badge colours */
-.badge-success { background: rgba(46,125,50,0.15);   color: #81C784; border: 0.5px solid rgba(46,125,50,0.3);   }
-.badge-warning { background: rgba(180,83,9,0.15);    color: #FBBF24; border: 0.5px solid rgba(180,83,9,0.3);    }
-.badge-danger  { background: rgba(198,40,40,0.15);   color: #EF9A9A; border: 0.5px solid rgba(198,40,40,0.3);   }
-.badge-info    { background: rgba(2,119,189,0.15);   color: #81D4FA; border: 0.5px solid rgba(2,119,189,0.3);   }
-.badge-amber   { background: rgba(212,137,26,0.15);  color: var(--gd-amber-200); border: 0.5px solid rgba(212,137,26,0.3); }
-.badge-neutral { background: var(--gd-dark-elevated); color: var(--text-secondary); border: 0.5px solid rgba(255,255,255,0.1); }
+.badge-success { background: rgba(46,125,50,0.15);   color: var(--status-success-text); border: 0.5px solid rgba(46,125,50,0.3);   }
+.badge-warning { background: rgba(180,83,9,0.15);    color: var(--status-warning-text); border: 0.5px solid rgba(180,83,9,0.3);    }
+.badge-danger  { background: rgba(198,40,40,0.15);   color: var(--status-danger-text); border: 0.5px solid rgba(198,40,40,0.3);   }
+.badge-info    { background: rgba(2,119,189,0.15);   color: var(--status-info-text); border: 0.5px solid rgba(2,119,189,0.3);   }
+.badge-amber   { background: rgba(212,137,26,0.15);  color: var(--status-amber-text); border: 0.5px solid rgba(212,137,26,0.3); }
+.badge-neutral { background: var(--gd-dark-elevated); color: var(--text-secondary); border: 0.5px solid var(--control-border); }
 
 /* Legacy .status-badge variants (used in cars/drivers JS) */
-.status-badge.active         { background: rgba(46,125,50,0.15);   color: #81C784; border: 0.5px solid rgba(46,125,50,0.3);   }
-.status-badge.inactive       { background: rgba(198,40,40,0.15);   color: #EF9A9A; border: 0.5px solid rgba(198,40,40,0.3);   }
-.status-badge.warning        { background: rgba(180,83,9,0.15);    color: #FBBF24; border: 0.5px solid rgba(180,83,9,0.3);    }
-.status-badge.decommissioned { background: var(--gd-dark-elevated); color: var(--text-secondary); border: 0.5px solid rgba(255,255,255,0.1); }
+.status-badge.active         { background: rgba(46,125,50,0.15);   color: var(--status-success-text); border: 0.5px solid rgba(46,125,50,0.3);   }
+.status-badge.inactive       { background: rgba(198,40,40,0.15);   color: var(--status-danger-text); border: 0.5px solid rgba(198,40,40,0.3);   }
+.status-badge.warning        { background: rgba(180,83,9,0.15);    color: var(--status-warning-text); border: 0.5px solid rgba(180,83,9,0.3);    }
+.status-badge.decommissioned { background: var(--gd-dark-elevated); color: var(--text-secondary); border: 0.5px solid var(--control-border); }
 
 /* Plate badge – monospace styled chip */
 .plate-badge {
     font-family: var(--gd-font-mono);
     font-size: 11px;
     font-weight: 600;
-    color: var(--gd-amber-200);
+    color: var(--status-amber-text);
     background: rgba(212,137,26,0.1);
     border: 0.5px solid rgba(212,137,26,0.25);
     padding: 3px 8px;
@@ -1175,7 +1193,7 @@ textarea {
     font-size: 20px;
     font-weight: 700;
     letter-spacing: 0.02em;
-    color: #F5EDD8;
+    color: var(--text-heading);
 }
 
 .table-header-subtitle {
@@ -1226,7 +1244,7 @@ textarea {
     border: none;
     outline: none;
     box-shadow: none;
-    color: #F5EDD8;
+    color: var(--text-heading);
     font-size: 13px;
     height: 100%;
     width: 100%;
@@ -1305,7 +1323,7 @@ textarea {
     text-align: left;
 }
 
-.filter-dropdown-item:hover { background: rgba(212,137,26,0.06); color: #F5EDD8; }
+.filter-dropdown-item:hover { background: rgba(212,137,26,0.06); color: var(--text-heading); }
 .filter-dropdown-item.active-filter { color: var(--gd-amber-400); }
 .filter-dropdown-item svg,
 .filter-dropdown-item i { width: 14px; height: 14px; flex-shrink: 0; }
@@ -1351,7 +1369,7 @@ textarea {
 .data-table td,
 .comparison-table td {
     font-size: 13px;
-    color: #F5EDD8;
+    color: var(--text-heading);
     padding: 13px 20px;
     border-bottom: 0.5px solid var(--gd-dark-border);
     vertical-align: middle;
@@ -1443,7 +1461,7 @@ textarea {
     border: none;
     border-radius: 8px;
     background: transparent;
-    color: #F5EDD8;
+    color: var(--text-heading);
     font-size: 12px;
     font-weight: 500;
     text-align: left;
@@ -1454,7 +1472,7 @@ textarea {
 .ctx-item:hover,
 .ctx-item:focus-visible {
     background: rgba(212,137,26,0.08);
-    color: #FFF;
+    color: var(--text-heading);
     outline: none;
 }
 
@@ -1516,7 +1534,7 @@ textarea {
 .table-error-icon {
     width: 40px;
     height: 40px;
-    color: rgba(255,255,255,0.12);
+    color: var(--text-icon-muted);
     margin-bottom: 4px;
 }
 
@@ -1524,7 +1542,7 @@ textarea {
     font-family: var(--gd-font-display);
     font-size: 16px;
     font-weight: 700;
-    color: #F5EDD8;
+    color: var(--text-heading);
     letter-spacing: 0.02em;
 }
 
@@ -1656,7 +1674,7 @@ textarea {
     font-size: 20px;
     font-weight: 700;
     letter-spacing: 0.02em;
-    color: #F5EDD8;
+    color: var(--text-heading);
     margin: 0;
 }
 
@@ -1696,7 +1714,7 @@ textarea {
 }
 
 .close-btn:hover,
-.modal-close:hover { color: #F5EDD8; }
+.modal-close:hover { color: var(--text-heading); }
 
 /* ════════════════════════════════════════════════════════════════
    NOTIFICATIONS & TOASTS  (style guide §Notifications & Alerts)
@@ -1758,10 +1776,10 @@ textarea {
     width: 100%;
 }
 
-.toast.success { border-left: 3px solid var(--gd-success); color: #81C784; }
-.toast.error   { border-left: 3px solid var(--gd-danger);  color: #EF9A9A; }
-.toast.warning { border-left: 3px solid var(--gd-amber-400); color: var(--gd-amber-200); }
-.toast.info    { border-left: 3px solid var(--gd-info);    color: #81D4FA; }
+.toast.success { border-left: 3px solid var(--gd-success); color: var(--status-success-text); }
+.toast.error   { border-left: 3px solid var(--gd-danger);  color: var(--status-danger-text); }
+.toast.warning { border-left: 3px solid var(--gd-amber-400); color: var(--status-amber-text); }
+.toast.info    { border-left: 3px solid var(--gd-info);    color: var(--status-info-text); }
 
 .toast-icon         { flex-shrink: 0; margin-top: 1px; }
 .toast-icon svg     { width: 16px; height: 16px; }
@@ -1770,7 +1788,7 @@ textarea {
 .toast-title {
     font-size: 13px;
     font-weight: 600;
-    color: #F5EDD8;
+    color: var(--text-heading);
     margin-bottom: 2px;
     line-height: 1.3;
 }
@@ -1792,7 +1810,7 @@ textarea {
     font-size: 16px;
 }
 
-.toast-close:hover { color: #F5EDD8; }
+.toast-close:hover { color: var(--text-heading); }
 
 @keyframes gdToastIn {
     from { opacity: 0; transform: translateX(28px); }
@@ -1887,7 +1905,7 @@ textarea {
     font-size: 18px;
     font-weight: 700;
     letter-spacing: 0.02em;
-    color: #F5EDD8;
+    color: var(--text-heading);
 }
 
 .notif-clear-btn {
@@ -1930,7 +1948,7 @@ textarea {
 .notif-item-success { border-left: 3px solid var(--gd-success); }
 
 .notif-item-header { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
-.notif-item-title  { font-size: 12px; font-weight: 600; color: #F5EDD8; flex: 1; min-width: 0; }
+.notif-item-title  { font-size: 12px; font-weight: 600; color: var(--text-heading); flex: 1; min-width: 0; }
 .notif-item-ts     { font-size: 11px; color: var(--text-secondary); white-space: nowrap; flex-shrink: 0; }
 
 .notif-item-dismiss {
@@ -1944,7 +1962,7 @@ textarea {
     flex-shrink: 0;
 }
 
-.notif-item-dismiss:hover { color: #F5EDD8; }
+.notif-item-dismiss:hover { color: var(--text-heading); }
 .notif-item-msg { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
 
 /* ════════════════════════════════════════════════════════════════
@@ -2029,7 +2047,7 @@ textarea {
     font-size: 16px;
     font-weight: 700;
     letter-spacing: 0.02em;
-    color: #F5EDD8;
+    color: var(--text-heading);
     margin-bottom: 14px;
     padding-bottom: 12px;
     border-bottom: 0.5px solid var(--gd-dark-border);
@@ -2040,7 +2058,7 @@ textarea {
     justify-content: space-between;
     align-items: center;
     padding: 7px 0;
-    border-bottom: 0.5px solid rgba(255,255,255,0.04);
+    border-bottom: 0.5px solid var(--gd-dark-border);
     font-size: 13px;
 }
 
@@ -2055,7 +2073,7 @@ textarea {
 
 .log-summary-row span {
     font-weight: 600;
-    color: #F5EDD8;
+    color: var(--text-heading);
     font-size: 13px;
     font-family: var(--gd-font-mono);
 }
@@ -2121,7 +2139,7 @@ textarea {
     font-family: var(--gd-font-display);
     font-size: 20px;
     font-weight: 700;
-    color: #F5EDD8;
+    color: var(--text-heading);
     line-height: 1;
 }
 
@@ -2160,8 +2178,8 @@ div#mileageStatContainer.review    { border-color: rgba(180,83,9,0.35);  backgro
     width: 32px;
     height: 32px;
     border-radius: 8px;
-    background: rgba(255,255,255,0.04);
-    border: 0.5px solid rgba(255,255,255,0.08);
+    background: var(--gd-dark-border);
+    border: 0.5px solid var(--gd-dark-border);
     color: var(--text-secondary);
     cursor: pointer;
     display: flex;
@@ -2170,7 +2188,7 @@ div#mileageStatContainer.review    { border-color: rgba(180,83,9,0.35);  backgro
     transition: background 0.1s, color 0.1s;
     z-index: 10;
 }
-.vpi-close:hover { background: rgba(255,255,255,0.1); color: #F5EDD8; }
+.vpi-close:hover { background: var(--control-border); color: var(--text-heading); }
 
 .vpi-header {
     display: flex;
@@ -2255,7 +2273,7 @@ div#mileageStatContainer.review    { border-color: rgba(180,83,9,0.35);  backgro
     font-family: var(--gd-font-display);
     font-size: 18px;
     font-weight: 700;
-    color: #F5EDD8;
+    color: var(--text-heading);
     line-height: 1;
 }
 
@@ -2295,7 +2313,7 @@ div#mileageStatContainer.review    { border-color: rgba(180,83,9,0.35);  backgro
 .vpi-maint-badge {
     background: rgba(46,125,50,0.12);
     border: 0.5px solid rgba(46,125,50,0.3);
-    color: #81C784;
+    color: var(--status-success-text);
     font-size: 11px;
     font-weight: 600;
     padding: 4px 10px;
@@ -2307,7 +2325,7 @@ div#mileageStatContainer.review    { border-color: rgba(180,83,9,0.35);  backgro
 .vpi-maint-badge.warning {
     background: rgba(180,83,9,0.12);
     border-color: rgba(180,83,9,0.3);
-    color: #FBBF24;
+    color: var(--status-warning-text);
 }
 
 .vpi-health { display: flex; flex-direction: column; gap: 10px; }
@@ -2320,7 +2338,7 @@ div#mileageStatContainer.review    { border-color: rgba(180,83,9,0.35);  backgro
     line-height: 1;
 }
 
-.vpi-health-bar-track { width: 100%; height: 8px; background: rgba(255,255,255,0.06); border-radius: 8px; overflow: hidden; }
+.vpi-health-bar-track { width: 100%; height: 8px; background: var(--gd-dark-border); border-radius: 8px; overflow: hidden; }
 .vpi-health-bar-fill { height: 100%; border-radius: 8px; background: var(--gd-amber-400); transition: width 0.6s ease, background 0.3s ease; }
 .vpi-health-sub { font-size: 12px; color: var(--text-secondary); }
 
@@ -2359,7 +2377,7 @@ div#mileageStatContainer.review    { border-color: rgba(180,83,9,0.35);  backgro
     transition: background 0.1s, color 0.1s;
 }
 
-.overflow-item:hover { background: rgba(212,137,26,0.06); color: #F5EDD8; }
+.overflow-item:hover { background: rgba(212,137,26,0.06); color: var(--text-heading); }
 .overflow-item-danger:hover { color: var(--gd-danger); }
 
 /* ════════════════════════════════════════════════════════════════
@@ -2397,7 +2415,7 @@ div#mileageStatContainer.review    { border-color: rgba(180,83,9,0.35);  backgro
 
 /* Vehicle cell */
 .vehicle-cell { display: flex; flex-direction: column; gap: 2px; }
-.vehicle-cell-name { font-size: 13px; color: #F5EDD8; font-weight: 500; }
+.vehicle-cell-name { font-size: 13px; color: var(--text-heading); font-weight: 500; }
 .vehicle-cell-type { font-size: 11px; color: var(--text-secondary); font-family: var(--gd-font-mono); }
 
 /* Button group helpers */
@@ -2456,7 +2474,7 @@ div#mileageStatContainer.review    { border-color: rgba(180,83,9,0.35);  backgro
 .spinner {
     width: 18px;
     height: 18px;
-    border: 2px solid rgba(255,255,255,0.1);
+    border: 2px solid var(--control-border);
     border-top-color: var(--gd-amber-400);
     border-radius: 50%;
     animation: gdSpin 0.7s linear infinite;
