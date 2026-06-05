@@ -1,5 +1,52 @@
 import { FLEET_API_URL } from './config.js';
 
+export function fmtZMW(value, { compact = false, signed = false } = {}) {
+    const n = Number(value) || 0;
+    const abs = Math.abs(n);
+    let formatted;
+
+    if (compact && abs >= 1000000) {
+        formatted = (abs / 1000000).toLocaleString('en-ZM', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + 'M';
+    } else if (compact && abs >= 1000) {
+        formatted = (abs / 1000).toLocaleString('en-ZM', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + 'K';
+    } else {
+        formatted = abs.toLocaleString('en-ZM', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    const prefix = n < 0 ? '-K ' : (signed && n > 0 ? '+K ' : 'K ');
+    return prefix + formatted;
+}
+
+export function exportToCSV(filename, headers, rows) {
+    const esc = value => '"' + String(value == null ? '' : value).replace(/"/g, '""') + '"';
+    const lines = [headers.map(esc).join(',')];
+    rows.forEach(row => lines.push(row.map(esc).join(',')));
+    const blob = new Blob(['\uFEFF' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = Object.assign(document.createElement('a'), { href: url, download: filename });
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+        URL.revokeObjectURL(url);
+        a.remove();
+    }, 1000);
+}
+
+export function positionContextMenu(triggerEl, menuEl) {
+    const rect = triggerEl.getBoundingClientRect();
+    const menuH = 160;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const top = spaceBelow >= menuH ? rect.bottom + 4 : rect.top - menuH - 4;
+    menuEl.style.top = top + 'px';
+    menuEl.style.left = Math.max(8, rect.right - menuEl.offsetWidth) + 'px';
+    requestAnimationFrame(() => {
+        const actualH = menuEl.offsetHeight;
+        const spaceB = window.innerHeight - rect.bottom;
+        menuEl.style.top = (spaceB >= actualH ? rect.bottom + 4 : rect.top - actualH - 4) + 'px';
+        menuEl.style.left = Math.max(8, rect.right - menuEl.offsetWidth) + 'px';
+    });
+}
+
 export function friendlyError(rawMessage) {
     const m = (rawMessage || '').toLowerCase();
     if (m.includes('failed to fetch') || m.includes('networkerror') || m.includes('network request failed')) {

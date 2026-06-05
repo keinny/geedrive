@@ -1,6 +1,6 @@
 import { closeCarModal, closeDecommissionModal, closeDetailsModal } from './cars.js';
-import { closeDriverRegModal, closeFireModal } from './drivers.js';
-import { closeWeeklyLogModal } from './weekly-log.js';
+import { closeDriverEditModal, closeDriverRegModal, closeFireModal } from './drivers.js';
+import { closeLogDetailModal, closeWeeklyLogModal } from './weekly-log.js';
 
 let modalEventsBound = false;
 
@@ -11,17 +11,21 @@ export function setupModals() {
     window.addEventListener('click', function(event) {
         const carModal = document.getElementById('carRegistrationModal');
         const driverModal = document.getElementById('driverRegistrationModal');
+        const driverEditModal = document.getElementById('driverEditModal');
         const fireModal = document.getElementById('fireDriverModal');
         const detailsModal = document.getElementById('carDetailsModal');
         const decommissionModal = document.getElementById('decommissionModal');
         const weeklyLogModal = document.getElementById('weeklyLogModal');
+        const logDetailModal = document.getElementById('logDetailModal');
         
         if (event.target === carModal) closeCarModal();
         if (event.target === driverModal) closeDriverRegModal();
+        if (event.target === driverEditModal) closeDriverEditModal();
         if (event.target === fireModal) closeFireModal();
         if (event.target === detailsModal) closeDetailsModal();
         if (event.target === decommissionModal) closeDecommissionModal();
         if (event.target === weeklyLogModal) closeWeeklyLogModal();
+        if (event.target === logDetailModal) closeLogDetailModal();
     });
 
     window.addEventListener('keydown', function(event) {
@@ -30,9 +34,11 @@ export function setupModals() {
             if (modal.id === 'weeklyLogModal') closeWeeklyLogModal();
             if (modal.id === 'carRegistrationModal') closeCarModal();
             if (modal.id === 'driverRegistrationModal') closeDriverRegModal();
+            if (modal.id === 'driverEditModal') closeDriverEditModal();
             if (modal.id === 'fireDriverModal') closeFireModal();
             if (modal.id === 'carDetailsModal') closeDetailsModal();
             if (modal.id === 'decommissionModal') closeDecommissionModal();
+            if (modal.id === 'logDetailModal') closeLogDetailModal();
         });
     });
 

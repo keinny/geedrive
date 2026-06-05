@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="system">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,8 +15,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/18.2.1/css/intlTelInput.css">
 
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/18.2.1/js/intlTelInput.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/18.2.1/js/utils.js"></script>
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -51,28 +54,27 @@
 
         <ul class="sidebar-menu" role="list">
             <li role="listitem">
-                <button class="nav-item-btn" data-tab="dashboard" data-label="System Dashboard" aria-current="false">
+                <button class="nav-item-btn active" data-tab="dashboard" data-label="System Dashboard" aria-current="page">
                     <i data-lucide="bar-chart-3" aria-hidden="true"></i>
                     <span class="nav-item-text">System Dashboard</span>
                 </button>
             </li>
             <li role="listitem">
-                <!-- CHANGE: default active tab marked with aria-current -->
-                <button class="nav-item-btn active" data-tab="weekly-log" data-label="Weekly Log" aria-current="page">
+                <button class="nav-item-btn" data-tab="weekly-log" data-label="Weekly Log" aria-current="false">
                     <i data-lucide="clipboard-list" aria-hidden="true"></i>
                     <span class="nav-item-text">Weekly Log</span>
                 </button>
             </li>
             <li role="listitem">
-                <button class="nav-item-btn" data-tab="car-management" data-label="Car Management" aria-current="false">
+                <button class="nav-item-btn" data-tab="car-management" data-label="Cars" aria-current="false">
                     <i data-lucide="car" aria-hidden="true"></i>
-                    <span class="nav-item-text">Car Management</span>
+                    <span class="nav-item-text">Cars</span>
                 </button>
             </li>
             <li role="listitem">
-                <button class="nav-item-btn" data-tab="driver-management" data-label="Drivers Pool" aria-current="false">
+                <button class="nav-item-btn" data-tab="driver-management" data-label="Drivers" aria-current="false">
                     <i data-lucide="users" aria-hidden="true"></i>
-                    <span class="nav-item-text">Drivers Pool</span>
+                    <span class="nav-item-text">Drivers</span>
                 </button>
             </li>
         </ul>
@@ -86,12 +88,10 @@
         <!-- Top navbar (style guide §Navigation: 64px height) -->
         <header class="top-navbar-strip" role="banner">
             <nav class="breadcrumb-container" aria-label="Breadcrumb">
-                <span class="breadcrumb-segment">Platform</span>
-                <span class="breadcrumb-separator" aria-hidden="true">/</span>
-                <span class="breadcrumb-segment">Fleet Matrix</span>
+                <span class="breadcrumb-segment">GeeDrive</span>
                 <span class="breadcrumb-separator" aria-hidden="true">/</span>
                 <!-- CHANGE: aria-live so screen readers announce tab switches -->
-                <span class="breadcrumb-segment current-loc" id="breadcrumbActiveLabel" aria-live="polite">Weekly Log</span>
+                <span class="breadcrumb-segment current-loc" id="breadcrumbActiveLabel" aria-live="polite">System Dashboard</span>
             </nav>
 
             <!-- CHANGE: removed ad-hoc inline style; topbar actions use defined utility classes -->
@@ -101,6 +101,17 @@
                     <i data-lucide="bell" aria-hidden="true"></i>
                     <span class="notif-dot" id="notifDot" style="display:none;" aria-label="Unread notifications"></span>
                 </button>
+                <div class="theme-picker" id="themePicker" role="group" aria-label="Theme">
+                    <button class="theme-btn" data-theme="light" title="Light mode" aria-pressed="false">
+                        <i data-lucide="sun" aria-hidden="true"></i>
+                    </button>
+                    <button class="theme-btn" data-theme="dark" title="Dark mode" aria-pressed="false">
+                        <i data-lucide="moon" aria-hidden="true"></i>
+                    </button>
+                    <button class="theme-btn active" data-theme="system" title="System theme" aria-pressed="true">
+                        <i data-lucide="monitor" aria-hidden="true"></i>
+                    </button>
+                </div>
             </div>
         </header>
 
@@ -109,7 +120,7 @@
             <!-- ─────────────────────────────────────────────────
                  TAB: WEEKLY LOG
             ───────────────────────────────────────────────── -->
-            <div id="weekly-log" class="tab-content active" role="tabpanel" aria-label="Weekly Log">
+            <div id="weekly-log" class="tab-content" role="tabpanel" aria-label="Weekly Log">
 
                 <!-- Protocol warning (shown only on file:// protocol) -->
                 <div class="file-protocol-warning" id="fileProtocolWarning" role="alert">
@@ -128,10 +139,24 @@
                             <div class="table-header-title">Weekly Logs</div>
                             <div class="table-header-subtitle">Submitted fleet telemetry entries, newest first</div>
                         </div>
-                        <button class="btn-primary btn-sm" data-action="open-weekly-log-modal">
-                            <i data-lucide="plus" aria-hidden="true"></i>
-                            Create Log
-                        </button>
+                        <div class="action-group">
+                            <button class="btn-primary btn-sm" data-action="open-weekly-log-modal" aria-haspopup="dialog">
+                                <i data-lucide="plus" aria-hidden="true"></i>
+                                Create Log
+                            </button>
+                            <button class="btn-ghost btn-sm" data-action="export-logs" title="Export logs as CSV">
+                                <i data-lucide="download" aria-hidden="true"></i>
+                                Export
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-toolbar">
+                        <select class="filter-select" id="logsSortSelect" aria-label="Sort logs">
+                            <option value="created-desc">Date submitted</option>
+                            <option value="week-desc">Week start</option>
+                            <option value="month-desc">Month</option>
+                        </select>
+                        <div class="table-toolbar-spacer"></div>
                     </div>
 
                     <div class="table-scroll-body">
@@ -351,13 +376,13 @@
             <!-- ─────────────────────────────────────────────────
                  TAB: CAR MANAGEMENT
             ───────────────────────────────────────────────── -->
-            <div id="car-management" class="tab-content" role="tabpanel" aria-label="Car Management">
+            <div id="car-management" class="tab-content" role="tabpanel" aria-label="Cars">
                 <div id="carStatusMessage" class="status-message" role="alert"></div>
 
                 <div class="table-wrapper">
                     <div class="table-header-bar">
                         <div>
-                            <div class="table-header-title">Car Management</div>
+                            <div class="table-header-title">Cars</div>
                             <div class="table-header-subtitle">Manage vehicles, monitor health and track maintenance</div>
                         </div>
                         <!-- CHANGE: badge styled via CSS class; no inline style -->
@@ -431,10 +456,28 @@
                                 <button class="filter-dropdown-item" data-action="filter-cars-type" data-type="Bus" role="option">Bus</button>
                             </div>
                         </div>
-                        <button class="btn-primary btn-sm" data-action="open-car-modal">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                            Add Vehicle
-                        </button>
+                        <select class="filter-select" id="carsTypeSelect" aria-label="Filter by vehicle type">
+                            <option value="all">All Types</option>
+                            <option value="Sedan">Sedan</option>
+                            <option value="Hatchback">Hatchback</option>
+                            <option value="SUV">SUV</option>
+                            <option value="Truck">Truck</option>
+                            <option value="Coupe">Coupe</option>
+                            <option value="Minivan">Minivan</option>
+                            <option value="Station Wagon">Station Wagon</option>
+                            <option value="Minibus">Minibus</option>
+                            <option value="Bus">Bus</option>
+                        </select>
+                        <div class="action-group">
+                            <button class="btn-primary btn-sm" data-action="open-car-modal" aria-haspopup="dialog">
+                                <i data-lucide="plus" aria-hidden="true"></i>
+                                Add Vehicle
+                            </button>
+                            <button class="btn-ghost btn-sm" data-action="export-cars" title="Export vehicles as CSV">
+                                <i data-lucide="download" aria-hidden="true"></i>
+                                Export
+                            </button>
+                        </div>
                     </div>
 
                     <div class="table-scroll-body">
@@ -464,13 +507,13 @@
             <!-- ─────────────────────────────────────────────────
                  TAB: DRIVER MANAGEMENT
             ───────────────────────────────────────────────── -->
-            <div id="driver-management" class="tab-content" role="tabpanel" aria-label="Driver Management">
+            <div id="driver-management" class="tab-content" role="tabpanel" aria-label="Drivers">
                 <div id="driverStatusMessage" class="status-message" role="alert"></div>
 
                 <div class="table-wrapper">
                     <div class="table-header-bar">
                         <div>
-                            <div class="table-header-title">Drivers Pool</div>
+                            <div class="table-header-title">Drivers</div>
                             <div class="table-header-subtitle">Manage driver profiles, documents and performance</div>
                         </div>
                         <div class="table-header-badge" id="driversLiveCount" aria-live="polite">— Drivers</div>
@@ -529,10 +572,16 @@
                                 </button>
                             </div>
                         </div>
-                        <button class="btn-primary btn-sm" data-action="open-driver-modal">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                            Add Driver
-                        </button>
+                        <div class="action-group">
+                            <button class="btn-primary btn-sm" data-action="open-driver-modal" aria-haspopup="dialog">
+                                <i data-lucide="plus" aria-hidden="true"></i>
+                                Add Driver
+                            </button>
+                            <button class="btn-ghost btn-sm" data-action="export-drivers" title="Export drivers as CSV">
+                                <i data-lucide="download" aria-hidden="true"></i>
+                                Export
+                            </button>
+                        </div>
                     </div>
 
                     <div class="table-scroll-body">
@@ -563,19 +612,7 @@
             <!-- ─────────────────────────────────────────────────
                  TAB: DASHBOARD
             ───────────────────────────────────────────────── -->
-            <div id="dashboard" class="tab-content" role="tabpanel" aria-label="System Dashboard">
-                <div class="info-box" role="note">
-                    <i data-lucide="bar-chart-3" aria-hidden="true"></i>
-                    Comprehensive high-level summary logs covering financials, historical trends, operational indicators, and safety scores.
-                </div>
-
-                <!-- CHANGE: filter-bar uses CSS class; no inline style -->
-                <div class="filter-bar">
-                    <label for="dashboardCarFilter">Filter by Vehicle:</label>
-                    <select id="dashboardCarFilter" aria-label="Filter dashboard by vehicle">
-                        <option value="">-- All Vehicles --</option>
-                    </select>
-                </div>
+            <div id="dashboard" class="tab-content active" role="tabpanel" aria-label="System Dashboard">
 
                 <!-- Metric cards (style guide §Cards & Metrics: Barlow Condensed value) -->
                 <div class="dashboard-grid" role="region" aria-label="Fleet metrics">
@@ -607,6 +644,13 @@
                             <div class="table-header-title">Fleet Performance</div>
                             <div class="table-header-subtitle">Revenue, maintenance and profitability by vehicle</div>
                         </div>
+                    </div>
+                    <div class="table-toolbar">
+                        <select class="filter-select" id="dashboardCarFilter" aria-label="Filter by vehicle">
+                            <option value="">All Vehicles</option>
+                        </select>
+                        <div class="table-toolbar-spacer"></div>
+                        <span class="toolbar-count" id="dashboardCountBadge" aria-live="polite">0 records</span>
                     </div>
                     <div class="table-scroll-body">
                         <table class="data-table" id="dashboardComparisonTable" aria-label="Fleet performance by vehicle">
@@ -673,8 +717,11 @@
                         </div>
                         <div class="form-group">
                             <label for="carPlateReg" class="required">Registration Plate Number</label>
-                            <!-- CHANGE: removed style="text-transform: uppercase" — handled via CSS input[id=carPlateReg] -->
-                            <input type="text" id="carPlateReg" placeholder="e.g., AB1234" style="text-transform:uppercase;" required aria-required="true">
+                            <div class="field-hint-pill">
+                                <i data-lucide="info" aria-hidden="true"></i>
+                                Format: ABK 1234
+                            </div>
+                            <input type="text" id="carPlateReg" placeholder="e.g., ABK 1234" required aria-required="true">
                             <span class="validation-message" id="plateValidationMessage" role="status" aria-live="polite"></span>
                         </div>
                         <div class="form-group">
@@ -783,6 +830,10 @@
                             </div>
                             <div class="form-group">
                                 <label for="nrcNumber" class="required">NRC Number</label>
+                                <div class="field-hint-pill">
+                                    <i data-lucide="info" aria-hidden="true"></i>
+                                    Format: 123456/78/9
+                                </div>
                                 <input type="text" id="nrcNumber" placeholder="e.g., 111111/11/1" required aria-required="true">
                                 <span class="validation-message" id="nrcValidationMessage" role="status" aria-live="polite"></span>
                             </div>
@@ -794,7 +845,12 @@
                         <div class="form-grid">
                             <div class="form-group">
                                 <label for="licenseNumber" class="required">License Number</label>
-                                <input type="text" id="licenseNumber" name="licenseNumber" placeholder="e.g., DL-123456789" required aria-required="true">
+                                <div class="field-hint-pill">
+                                    <i data-lucide="info" aria-hidden="true"></i>
+                                    Format: 12345678
+                                </div>
+                                <input type="text" id="licenseNumber" name="licenseNumber" placeholder="e.g., 10293847" required aria-required="true">
+                                <span class="validation-message" id="licenseValidationMessage" role="status" aria-live="polite"></span>
                             </div>
                             <div class="form-group">
                                 <label for="licenseExpiry" class="required">License Expiry Date</label>
@@ -808,27 +864,23 @@
                         <div class="form-grid">
                             <div class="form-group">
                                 <label for="nrcUpload" class="required">NRC Scanned Copy</label>
-                                <div class="file-input-wrapper">
+                                <div class="gd-drop-zone" id="nrcDropZone">
                                     <input type="file" id="nrcUpload" name="nrcUpload" accept="image/*,application/pdf" required aria-required="true">
-                                    <label for="nrcUpload" class="file-input-label">
-                                        <i data-lucide="upload" aria-hidden="true"></i>
-                                        Click to upload NRC copy
-                                    </label>
+                                    <div class="gd-drop-zone-icon"><i data-lucide="upload-cloud" aria-hidden="true"></i></div>
+                                    <div class="gd-drop-zone-label"><strong>Click to upload</strong> or drag &amp; drop</div>
+                                    <div class="gd-drop-zone-hint">NRC copy — PDF, PNG or JPG · max 5 MB</div>
+                                    <div class="gd-drop-zone-filename" id="nrcFileName" aria-live="polite"></div>
                                 </div>
-                                <span class="file-name" id="nrcFileName" aria-live="polite"></span>
-                                <span class="form-note">Accepted: PDF, PNG, JPG (Max 5MB)</span>
                             </div>
                             <div class="form-group">
                                 <label for="licenseUpload" class="required">Driver's License Copy</label>
-                                <div class="file-input-wrapper">
+                                <div class="gd-drop-zone" id="licenseDropZone">
                                     <input type="file" id="licenseUpload" name="licenseUpload" accept="image/*,application/pdf" required aria-required="true">
-                                    <label for="licenseUpload" class="file-input-label">
-                                        <i data-lucide="upload" aria-hidden="true"></i>
-                                        Click to upload License copy
-                                    </label>
+                                    <div class="gd-drop-zone-icon"><i data-lucide="upload-cloud" aria-hidden="true"></i></div>
+                                    <div class="gd-drop-zone-label"><strong>Click to upload</strong> or drag &amp; drop</div>
+                                    <div class="gd-drop-zone-hint">License copy — PDF, PNG or JPG · max 5 MB</div>
+                                    <div class="gd-drop-zone-filename" id="licenseFileName" aria-live="polite"></div>
                                 </div>
-                                <span class="file-name" id="licenseFileName" aria-live="polite"></span>
-                                <span class="form-note">Accepted: PDF, PNG, JPG (Max 5MB)</span>
                             </div>
                         </div>
                     </div>
@@ -919,7 +971,12 @@
                         <div class="form-grid">
                             <div class="form-group">
                                 <label for="editLicenseNumber" class="required">License Number</label>
+                                <div class="field-hint-pill">
+                                    <i data-lucide="info" aria-hidden="true"></i>
+                                    Format: 12345678
+                                </div>
                                 <input type="text" id="editLicenseNumber" required aria-required="true">
+                                <span class="validation-message" id="editLicenseValidationMessage" role="status" aria-live="polite"></span>
                             </div>
                             <div class="form-group">
                                 <label for="editLicenseExpiry" class="required">License Expiry</label>
@@ -961,6 +1018,17 @@
                     </div>
                 </form>
             </div>
+        </div>
+    </div>
+
+    <!-- Log Detail Modal -->
+    <div id="logDetailModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="logDetailModalTitle">
+        <div class="modal-content modal-content--wide">
+            <div class="modal-header">
+                <h2 class="modal-title" id="logDetailModalTitle">Weekly Log Entry</h2>
+                <button class="close-btn" data-action="close-log-detail-modal" aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body" id="logDetailBody"></div>
         </div>
     </div>
 
@@ -1055,7 +1123,7 @@
                 <!-- CHANGE: replaced ad-hoc inline styles with CSS class selectors -->
                 <p class="subtext" style="margin-bottom:12px;">
                     <strong>Driver:</strong>
-                    <span id="fireDriverName" style="color:#F5EDD8; font-weight:700;"></span>
+                    <span id="fireDriverName" style="color:var(--app-text); font-weight:700;"></span>
                 </p>
                 <div class="performance-stats" style="margin-bottom:20px;">
                     <div class="stat-card">
@@ -1141,6 +1209,7 @@
         </div>
     </div>
     <div class="notif-overlay" id="notifOverlay" data-action="close-notifications" aria-hidden="true"></div>
+    <div class="ctx-backdrop" id="ctxBackdrop" aria-hidden="true"></div>
 
     <script type="module" src="js/main.js"></script>
 </body>

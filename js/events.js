@@ -11,6 +11,7 @@ import {
     openCarModal,
     openDecommissionModal,
     populateCarsTable,
+    exportCars,
     setCarsFilter,
     setCarsTypeFilter,
     submitCarEdit,
@@ -37,6 +38,7 @@ import {
     openFireModal,
     populateDriversTable,
     printTerminationLetter,
+    exportDrivers,
     setDriversFilter,
     submitDriverEdit,
     submitDriverRegistration,
@@ -44,12 +46,15 @@ import {
 } from './drivers.js';
 import { filterDashboardByCar, loadDashboardData } from './dashboard.js';
 import { loadCars, loadDrivers } from './dropdowns.js';
-import { closeMobileSidebar, closeOverflowMenus, toggleOverflowMenu } from './navigation.js';
-import { showToast } from './utils.js';
+import { closeMobileSidebar } from './navigation.js';
+import { positionContextMenu } from './utils.js';
 import {
+    closeLogDetailModal,
     closeWeeklyLogModal,
+    exportLogs,
     handleWeeklyLogSubmit,
     loadWeeklyLogs,
+    openLogDetailModal,
     openWeeklyLogModal,
     populateLogsTable,
 } from './weekly-log.js';
@@ -71,6 +76,7 @@ export function setupAppEvents() {
     document.addEventListener('click', handleDocumentClick);
     document.addEventListener('input', handleDocumentInput);
     document.addEventListener('change', handleDocumentChange);
+    document.getElementById('ctxBackdrop')?.addEventListener('click', closeAllContextMenus);
 
     document.getElementById('fleetForm')?.addEventListener('submit', handleWeeklyLogSubmit);
     document.getElementById('carRegForm')?.addEventListener('submit', event => {
@@ -93,7 +99,10 @@ export function setupAppEvents() {
 
 function handleDocumentClick(event) {
     const target = event.target.closest('[data-action]');
-    if (!target) return;
+    if (!target) {
+        if (!event.target.closest('.ctx-menu')) closeAllContextMenus();
+        return;
+    }
 
     const action = target.dataset.action;
 
@@ -102,13 +111,13 @@ function handleDocumentClick(event) {
         return;
     }
 
-    if (action === 'toggle-overflow-menu') {
-        toggleOverflowMenu(target);
+    if (action === 'toggle-context-menu') {
+        toggleContextMenu(target);
         return;
     }
 
     if (action === 'open-fire-modal') {
-        closeOverflowMenus();
+        closeAllContextMenus();
         openFireModal(target.dataset.driverName, Number(target.dataset.score), Number(target.dataset.shortages));
         return;
     }
@@ -137,7 +146,9 @@ function handleDocumentClick(event) {
         'retry-drivers-dropdown': () => loadDrivers(true),
         'open-weekly-log-modal': openWeeklyLogModal,
         'close-weekly-log-modal': closeWeeklyLogModal,
-        'view-log-entry': () => showToast('Log entry', 'Detailed log view is ready for future expansion.', 'info'),
+        'view-log-entry': () => openLogDetailModal(target.dataset.logId),
+        'close-log-detail-modal': closeLogDetailModal,
+        'export-logs': exportLogs,
         'toggle-cars-filter': () => toggleCarsFilter(event),
         'filter-cars-status': () => setCarsFilter(target.dataset.status, target),
         'filter-cars-type': () => setCarsTypeFilter(target.dataset.type, target),
@@ -147,9 +158,10 @@ function handleDocumentClick(event) {
         'close-car-edit-modal': closeCarEditModal,
         'open-car-details': () => openCarDetailsModal(target.dataset.plate),
         'close-car-details': closeDetailsModal,
-        'open-decommission-modal': () => openDecommissionModal(state.currentViewCar),
+        'open-decommission-modal': () => openDecommissionModal(target.dataset.carId || state.currentViewCar),
         'close-decommission-modal': closeDecommissionModal,
         'confirm-decommission-car': confirmDecommissionCar,
+        'export-cars': exportCars,
         'toggle-drivers-filter': () => toggleDriversFilter(event),
         'filter-drivers-status': () => setDriversFilter(target.dataset.status, target),
         'open-driver-modal': openDriverRegModal,
@@ -160,10 +172,15 @@ function handleDocumentClick(event) {
         'close-fire-modal': closeFireModal,
         'print-termination-letter': printTerminationLetter,
         'confirm-fire-driver': confirmFireDriver,
+        'export-drivers': exportDrivers,
+        'close-context-menus': closeAllContextMenus,
         'dismiss-notification': () => dismissNotif(Number(target.dataset.id)),
     };
 
-    actions[action]?.();
+    if (actions[action]) {
+        if (!['toggle-context-menu', 'close-context-menus'].includes(action)) closeAllContextMenus();
+        actions[action]();
+    }
 }
 
 function handleDocumentInput(event) {
@@ -181,7 +198,41 @@ function handleDocumentChange(event) {
     if (event.target.id === 'dashboardCarFilter') {
         filterDashboardByCar();
     }
+    if (event.target.id === 'carsTypeSelect') {
+        state.carsFilterType = event.target.value;
+        pagination.cars.page = 1;
+        const badge = document.getElementById('carsFilterBadge');
+        if (badge) badge.style.display = (state.carsFilterStatus !== 'all' || state.carsFilterType !== 'all') ? 'inline-flex' : 'none';
+        filterCarsTable();
+    }
+    if (event.target.id === 'logsSortSelect') {
+        state.logsSortMode = event.target.value;
+        pagination.logs.page = 1;
+        populateLogsTable(state.allLogs);
+    }
     if (event.target.id === 'terminationReason') {
         handleTerminationReasonChange();
+    }
+}
+
+export function closeAllContextMenus() {
+    document.querySelectorAll('.ctx-menu.open').forEach(menu => {
+        menu.classList.remove('open');
+        const trigger = menu.parentElement?.querySelector('.ctx-menu-btn');
+        if (trigger) trigger.setAttribute('aria-expanded', 'false');
+    });
+    document.getElementById('ctxBackdrop')?.classList.remove('active');
+}
+
+function toggleContextMenu(trigger) {
+    const menu = trigger.parentElement?.querySelector('.ctx-menu');
+    if (!menu) return;
+    const isOpen = menu.classList.contains('open');
+    closeAllContextMenus();
+    if (!isOpen) {
+        menu.classList.add('open');
+        trigger.setAttribute('aria-expanded', 'true');
+        document.getElementById('ctxBackdrop')?.classList.add('active');
+        positionContextMenu(trigger, menu);
     }
 }

@@ -84,6 +84,20 @@
     --border:    var(--gd-dark-border);
 }
 
+:root[data-theme='light'] {
+    --gd-dark-bg:        #F4F7FB;
+    --gd-dark-surface:   #FFFFFF;
+    --gd-dark-elevated:  #EEF3F8;
+    --gd-dark-border:    rgba(15, 23, 42, 0.12);
+    --gd-dark-border-strong: rgba(15, 23, 42, 0.18);
+    --text-primary:      rgba(15, 23, 42, 0.92);
+    --text-secondary:    rgba(15, 23, 42, 0.68);
+    --bg-dark:           var(--gd-dark-bg);
+    --bg-card:           var(--gd-dark-surface);
+    --bg-input:          var(--gd-dark-elevated);
+    --border:            var(--gd-dark-border);
+}
+
 /* ════════════════════════════════════════════════════════════════
    RESET & BASE
    ════════════════════════════════════════════════════════════════ */
@@ -1343,6 +1357,13 @@ textarea {
     vertical-align: middle;
 }
 
+.data-table th:last-child,
+.data-table td:last-child,
+.comparison-table th:last-child,
+.comparison-table td:last-child {
+    text-align: center;
+}
+
 /* Hover row tint */
 .data-table tbody tr:hover td,
 .comparison-table tbody tr:hover td {
@@ -1359,6 +1380,118 @@ textarea {
     min-height: 380px;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+}
+
+/* Context menu for table action buttons */
+.ctx-menu-wrapper {
+    position: relative;
+    display: flex;
+    justify-content: center;
+}
+
+.ctx-menu-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 0.5px solid var(--gd-dark-border);
+    border-radius: var(--border-radius-md);
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+.ctx-menu-btn:hover,
+.ctx-menu-btn:focus-visible {
+    background: rgba(212,137,26,0.08);
+    border-color: var(--gd-dark-border-strong);
+    color: var(--gd-amber-400);
+    outline: none;
+}
+
+.ctx-menu-btn svg,
+.ctx-menu-btn i {
+    width: 16px;
+    height: 16px;
+}
+
+.ctx-menu {
+    position: fixed;
+    z-index: 1300;
+    display: none;
+    min-width: 180px;
+    padding: 6px;
+    border: 0.5px solid var(--gd-dark-border-strong);
+    border-radius: 10px;
+    background: var(--gd-dark-surface);
+    box-shadow: 0 18px 42px rgba(0,0,0,0.45);
+    flex-direction: column;
+}
+
+.ctx-menu.open {
+    display: flex;
+}
+
+.ctx-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 12px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: #F5EDD8;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.ctx-item:hover,
+.ctx-item:focus-visible {
+    background: rgba(212,137,26,0.08);
+    color: #FFF;
+    outline: none;
+}
+
+.ctx-item.danger {
+    color: var(--gd-danger);
+}
+
+.ctx-item.danger:hover,
+.ctx-item.danger:focus-visible {
+    background: rgba(239,68,68,0.08);
+    color: #fca5a5;
+}
+
+.ctx-item svg,
+.ctx-item i {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+}
+
+.ctx-menu-divider {
+    height: 1px;
+    margin: 6px 0;
+    background: var(--gd-dark-border);
+}
+
+.ctx-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1250;
+    display: none;
+    background: rgba(0, 0, 0, 0.28);
+    backdrop-filter: blur(2px);
+}
+
+.ctx-backdrop.active {
+    display: block;
 }
 
 /* Empty state (style guide §empty-state pattern) */
@@ -2438,4 +2571,45 @@ div#mileageStatContainer.review    { border-color: rgba(180,83,9,0.35);  backgro
     display: flex;
     align-items: center;
     gap: 8px;
+}
+
+.theme-picker {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px;
+    border: 0.5px solid var(--gd-dark-border);
+    background: color-mix(in srgb, var(--gd-dark-surface) 88%, transparent);
+    border-radius: 999px;
+}
+
+.theme-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--text-secondary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.theme-btn:hover {
+    background: var(--gd-dark-elevated);
+    color: var(--gd-amber-400);
+}
+
+.theme-btn.active {
+    background: var(--gd-nav-active-bg);
+    border-color: var(--gd-dark-border-strong);
+    color: var(--gd-amber-400);
+}
+
+.theme-btn svg,
+.theme-btn i {
+    width: 16px;
+    height: 16px;
 }
