@@ -6,9 +6,15 @@ import { resetCarsFilters, resetDriversFilters } from './state.js';
 import { loadWeeklyLogs } from './weekly-log.js';
 
 export function switchTab(tabName, tabLabel) {
-    document.querySelectorAll('.nav-item-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.nav-item-btn').forEach(btn => {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-current', 'false');
+    });
     const clickedBtn = document.querySelector(`.nav-item-btn[data-tab="${tabName}"]`);
-    if (clickedBtn) clickedBtn.classList.add('active');
+    if (clickedBtn) {
+        clickedBtn.classList.add('active');
+        clickedBtn.setAttribute('aria-current', 'page');
+    }
 
     document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
     const panel = document.getElementById(tabName);
@@ -37,6 +43,8 @@ export function switchTab(tabName, tabLabel) {
         const csi = document.getElementById('carsSearchInput');
         if (csi) csi.value = '';
         resetCarsFilters();
+        const typeSelect = document.getElementById('carsTypeSelect');
+        if (typeSelect) typeSelect.value = 'all';
         const cfb = document.getElementById('carsFilterBadge');
         if (cfb) cfb.style.display = 'none';
         document.querySelectorAll('#carsFilterDropdown .filter-dropdown-item')
@@ -58,20 +66,6 @@ export function closeMobileSidebar() {
     document.getElementById('sidebarNode')?.classList.remove('mobile-open');
     document.getElementById('sidebarOverlay')?.classList.remove('visible');
 }
-
-
-// ── OVERFLOW MENU TOGGLE ─────────────────────────────────────────
-export function toggleOverflowMenu(triggerBtn) {
-    const menu = triggerBtn.nextElementSibling;
-    const isOpen = menu.classList.contains('open');
-    closeOverflowMenus();
-    if (!isOpen) menu.classList.add('open');
-}
-
-export function closeOverflowMenus() {
-    document.querySelectorAll('.overflow-menu.open').forEach(m => m.classList.remove('open'));
-}
-
 
 
 export function setupNavigation() {
@@ -101,4 +95,3 @@ export function setupNavigation() {
         });
     });
 }
-

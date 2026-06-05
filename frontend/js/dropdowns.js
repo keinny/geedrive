@@ -86,7 +86,7 @@ export function loadCars(isRetry = false) {
         loadCarsData_Init().catch(() => {});
         return;
     }
-    // Called from Car Management tab after register/decommission — silent refresh
+    // Called from Cars tab after register/decommission — silent refresh
     FleetAPI.getCars()
         .then(data => {
             if (data.status === 'success' && Array.isArray(data.cars)) {
@@ -119,7 +119,7 @@ export function populateCarDropdown() {
 
 export function populateDashboardCarFilter() {
     const select = document.getElementById('dashboardCarFilter');
-    select.innerHTML = '<option value="">-- All Vehicles --</option>';
+    select.innerHTML = '<option value="">All Vehicles</option>';
     state.allCars.forEach(car => {
         if (car.status !== 'Decommissioned') {
             const option = document.createElement('option');

@@ -12,6 +12,7 @@ export const state = {
     carsFilterStatus: 'all',
     carsFilterType: 'all',
     driversFilterStatus: 'all',
+    logsSortMode: 'created-desc',
 };
 
 export const pagination = {

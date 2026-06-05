@@ -26,7 +26,11 @@ import { FleetAPI } from './api.js';
 import { populateDriverDropdown } from './dropdowns.js';
 import { notifyIfSystemError } from './notifications.js';
 import { pagination, state, setAllDrivers } from './state.js';
+import { destroyPhoneInput, initPhoneInput, getE164, isPhoneValid, resetPhoneInput } from './phone.js';
+import { ZM, applyValidation, attachLiveValidation } from './validation.js';
 import {
+    exportToCSV,
+    fmtZMW,
     friendlyError,
     renderPagination,
     setSubmitLoading,
@@ -50,17 +54,22 @@ export function setupDrivers() {
         }
     });
 
+    initPhoneInput('driverPhone');
+    initPhoneInput('nextOfKinPhone');
+    attachLiveValidation('licenseNumber', 'licenseValidationMessage', ZM.license);
+    attachLiveValidation('editLicenseNumber', 'editLicenseValidationMessage', ZM.license);
+
     document.getElementById('nrcNumber')?.addEventListener('input', function() {
         const val = this.value.trim().toUpperCase();
         const msg = document.getElementById('nrcValidationMessage');
         const submitBtn = document.getElementById('driverSubmitBtn');
+        const format = ZM.nrc(val);
 
         state.nrcIsValid = false;
         submitBtn.disabled = true;
 
-        if (!val) {
-            msg.className = 'validation-message';
-            msg.textContent = '';
+        if (!format.valid) {
+            applyValidation(this, msg, format);
             submitBtn.disabled = false;
             return;
         }
@@ -93,23 +102,50 @@ export function setupDrivers() {
         }, 500);
     });
 
-    bindFileSelection('nrcUpload', 'nrcFileName');
-    bindFileSelection('licenseUpload', 'licenseFileName');
+    setupDropZone('nrcDropZone', 'nrcUpload', 'nrcFileName');
+    setupDropZone('licenseDropZone', 'licenseUpload', 'licenseFileName');
 }
 
-function bindFileSelection(inputId, labelId) {
-    document.getElementById(inputId)?.addEventListener('change', function() {
-        const fileName = this.files[0]?.name || 'No file selected';
-        const fileSize = this.files[0]?.size || 0;
-        const maxSize  = 5 * 1024 * 1024;
+function setupDropZone(zoneId, inputId, labelId) {
+    const zone = document.getElementById(zoneId);
+    const input = document.getElementById(inputId);
+    const label = document.getElementById(labelId);
+    if (!zone || !input || !label) return;
 
-        if (fileSize > maxSize) {
-            document.getElementById(labelId).className = 'file-name';
-            document.getElementById(labelId).textContent = 'File too large (max 5MB)';
-            this.value = '';
-        } else {
-            document.getElementById(labelId).className = 'file-name success';
-            document.getElementById(labelId).textContent = fileName + ' selected';
+    const updateFile = () => {
+        const file = input.files[0];
+        const maxSize = 5 * 1024 * 1024;
+        zone.classList.remove('has-file');
+        if (!file) {
+            label.textContent = '';
+            return;
+        }
+        if (file.size > maxSize) {
+            label.textContent = 'File too large (max 5 MB)';
+            input.value = '';
+            return;
+        }
+        zone.classList.add('has-file');
+        label.textContent = file.name + ' selected';
+    };
+
+    input.addEventListener('change', updateFile);
+    ['dragover', 'dragenter'].forEach(type => {
+        zone.addEventListener(type, event => {
+            event.preventDefault();
+            zone.classList.add('drag-over');
+        });
+    });
+    ['dragleave', 'drop'].forEach(type => {
+        zone.addEventListener(type, event => {
+            event.preventDefault();
+            zone.classList.remove('drag-over');
+        });
+    });
+    zone.addEventListener('drop', event => {
+        if (event.dataTransfer?.files?.length) {
+            input.files = event.dataTransfer.files;
+            updateFile();
         }
     });
 }
@@ -184,7 +220,7 @@ export function populateDriversTable(drivers) {
         }
 
         const statusBadgeClass = driver.status === 'Active' ? 'active' : 'inactive';
-        const safetyScore      = driver.performanceScore || 100;
+        const safetyScore      = Number(driver.performanceScore || 100);
 
         // CHANGE: CSS variable references instead of hard-coded hex
         // (style guide §Colors → Semantic tokens: gd-success, gd-warning, gd-danger)
@@ -193,18 +229,6 @@ export function populateDriversTable(drivers) {
             : safetyScore >= 65
                 ? 'var(--gd-warning)'
                 : 'var(--gd-danger)';
-
-        let docLinksHtml = '';
-        if (driver.hasNrcDocument) {
-            docLinksHtml += `<button type="button" class="doc-link-btn" data-action="open-driver-document" data-driver-id="${driver.id}" data-doc-type="nrc">NRC</button>`;
-        }
-        if (driver.hasLicenseDocument) {
-            docLinksHtml += `<button type="button" class="doc-link-btn" data-action="open-driver-document" data-driver-id="${driver.id}" data-doc-type="license">License</button>`;
-        }
-        // CHANGE: replaced `color: #999` with CSS token; removed inline font-family: monospace
-        if (!docLinksHtml) {
-            docLinksHtml = '<span style="color:var(--text-secondary); font-style:italic; font-size:11px;">No docs</span>';
-        }
 
         row.innerHTML = `
             <td><strong>${driver.name}</strong></td>
@@ -218,32 +242,44 @@ export function populateDriversTable(drivers) {
                     <!-- CHANGE: color token instead of hard-coded #666 -->
                     <div style="color:var(--text-secondary); font-size:11px;">${licenseStatus === 'valid' ? 'Exp: ' + licenseExpiryDate : 'Status: ' + (licenseStatus === 'expired' ? 'Expired' : 'Expiring Soon')}</div>
                     ${licenseBadge}
-                    <div style="margin-top:4px; display:flex; gap:4px; flex-wrap:wrap;">${docLinksHtml}</div>
                 </div>
             </td>
             <td><span class="status-badge ${statusBadgeClass}">${driver.status}</span></td>
             <td>
                 <div style="text-align:center;">
                     <!-- CHANGE: scoreColor now uses CSS variable reference -->
-                    <span style="font-family:var(--gd-font-display); font-weight:700; color:${scoreColor}; font-size:16px;">${safetyScore}%</span>
+                    <span style="font-family:var(--gd-font-display); font-weight:700; color:${scoreColor}; font-size:16px;">${(Number(safetyScore) || 0).toFixed(1)}%</span>
                     <!-- CHANGE: color token instead of hard-coded #777 -->
-                    <div style="font-size:11px; color:var(--text-secondary); margin-top:2px;">Shortages: K${(driver.totalShortages || 0).toFixed(0)}</div>
+                    <div style="font-size:11px; color:var(--text-secondary); margin-top:2px;">Shortages: ${fmtZMW(driver.totalShortages || 0)}</div>
                 </div>
             </td>
             <td>
-                <div class="action-buttons">
+                <div class="ctx-menu-wrapper">
+                    <button class="ctx-menu-btn" data-action="toggle-context-menu" title="More actions" aria-label="More actions" aria-haspopup="menu" aria-expanded="false">
+                        <i data-lucide="more-vertical" aria-hidden="true"></i>
+                    </button>
+                    <div class="ctx-menu" role="menu">
                     ${driver.status === 'Active' ? `
-                    <button class="btn-small btn-edit" data-action="open-driver-edit-modal" data-driver-id="${driver.id}">Edit</button>
-                    <div class="overflow-menu-wrapper">
-                        <button class="btn-small btn-icon-only overflow-trigger" data-action="toggle-overflow-menu" title="More actions" aria-label="More actions">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+                        <button class="ctx-item" data-action="open-driver-edit-modal" data-driver-id="${driver.id}" role="menuitem">
+                            <i data-lucide="pencil" aria-hidden="true"></i> Edit Profile
                         </button>
-                        <div class="overflow-menu">
-                            <button class="overflow-item overflow-item-danger" data-action="open-fire-modal" data-driver-name="${driver.name}" data-score="${safetyScore}" data-shortages="${driver.totalShortages || 0}">
-                                Terminate Driver
-                            </button>
-                        </div>
-                    </div>` : '<span class="status-badge inactive" style="font-size:10px;">Terminated</span>'}
+                        <button class="ctx-item" data-action="open-driver-document" data-driver-id="${driver.id}" data-doc-type="nrc" role="menuitem">
+                            <i data-lucide="file-text" aria-hidden="true"></i> View NRC
+                        </button>
+                        <button class="ctx-item" data-action="open-driver-document" data-driver-id="${driver.id}" data-doc-type="license" role="menuitem">
+                            <i data-lucide="file-text" aria-hidden="true"></i> View License
+                        </button>
+                        <div class="ctx-menu-divider" role="separator"></div>
+                        <button class="ctx-item danger" data-action="open-fire-modal" data-driver-name="${driver.name}" data-score="${safetyScore}" data-shortages="${driver.totalShortages || 0}" role="menuitem">
+                            <i data-lucide="x-circle" aria-hidden="true"></i> Terminate Driver
+                        </button>` : `
+                        <button class="ctx-item" data-action="open-driver-document" data-driver-id="${driver.id}" data-doc-type="nrc" role="menuitem">
+                            <i data-lucide="file-text" aria-hidden="true"></i> View NRC
+                        </button>
+                        <button class="ctx-item" data-action="open-driver-document" data-driver-id="${driver.id}" data-doc-type="license" role="menuitem">
+                            <i data-lucide="file-text" aria-hidden="true"></i> View License
+                        </button>`}
+                    </div>
                 </div>
             </td>
         `;
@@ -253,6 +289,7 @@ export function populateDriversTable(drivers) {
     updateDriverMetrics(drivers);
     updateDriversCount(filteredDrivers.length);
     renderPagination('drivers', pagination.drivers.total, pagination.drivers.page, pagination.drivers.pageSize);
+    if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 function getFilteredDrivers(drivers) {
@@ -309,6 +346,10 @@ export function closeDriverRegModal() {
     document.getElementById('registrationDate').value = '';
     document.getElementById('nrcFileName').textContent = '';
     document.getElementById('licenseFileName').textContent = '';
+    document.getElementById('nrcDropZone')?.classList.remove('has-file', 'drag-over');
+    document.getElementById('licenseDropZone')?.classList.remove('has-file', 'drag-over');
+    resetPhoneInput('driverPhone');
+    resetPhoneInput('nextOfKinPhone');
     const msg = document.getElementById('driverModalMessage');
     msg.className = 'status-message';
     msg.textContent = '';
@@ -331,6 +372,10 @@ export function openDriverEditModal(driverId) {
     document.getElementById('editNextOfKinRelationship').value  = driver.next_of_kin_relationship || '';
     document.getElementById('editNextOfKinPhone').value         = driver.next_of_kin_phone || '';
     document.getElementById('editNextOfKinEmail').value         = driver.next_of_kin_email || '';
+    const itiPhone = initPhoneInput('editDriverPhone');
+    const itiNok = initPhoneInput('editNextOfKinPhone');
+    if (itiPhone && driver.phone) itiPhone.setNumber(driver.phone);
+    if (itiNok && driver.next_of_kin_phone) itiNok.setNumber(driver.next_of_kin_phone);
     const msg = document.getElementById('driverEditModalMessage');
     msg.className = 'status-message';
     msg.textContent = '';
@@ -339,28 +384,47 @@ export function openDriverEditModal(driverId) {
 
 export function closeDriverEditModal() {
     document.getElementById('driverEditModal').classList.remove('show');
+    destroyPhoneInput('editDriverPhone');
+    destroyPhoneInput('editNextOfKinPhone');
     document.getElementById('driverEditForm').reset();
     state.currentEditDriverId = null;
 }
 
 export function submitDriverEdit() {
+    const editDriverPhoneValue = document.getElementById('editDriverPhone').value.trim();
+    const editNextOfKinPhoneValue = document.getElementById('editNextOfKinPhone').value.trim();
     const payload = {
         firstName:             document.getElementById('editFirstName').value.trim(),
         lastName:              document.getElementById('editLastName').value.trim(),
         email:                 document.getElementById('editDriverEmail').value.trim(),
-        phone:                 document.getElementById('editDriverPhone').value.trim(),
+        phone:                 getE164('editDriverPhone'),
         licenseNumber:         document.getElementById('editLicenseNumber').value.trim(),
         licenseExpiry:         document.getElementById('editLicenseExpiry').value,
         nextOfKinName:         document.getElementById('editNextOfKinName').value.trim(),
         nextOfKinRelationship: document.getElementById('editNextOfKinRelationship').value,
-        nextOfKinPhone:        document.getElementById('editNextOfKinPhone').value.trim(),
+        nextOfKinPhone:        getE164('editNextOfKinPhone'),
         nextOfKinEmail:        document.getElementById('editNextOfKinEmail').value.trim(),
     };
 
-    if (!payload.firstName || !payload.lastName || !payload.email || !payload.phone ||
+    if (!payload.firstName || !payload.lastName || !payload.email || !editDriverPhoneValue ||
         !payload.licenseNumber || !payload.licenseExpiry || !payload.nextOfKinName ||
-        !payload.nextOfKinRelationship || !payload.nextOfKinPhone) {
+        !payload.nextOfKinRelationship || !editNextOfKinPhoneValue) {
         showDriverEditMessage('Please fill in all required fields', 'error');
+        return;
+    }
+
+    if (!isPhoneValid('editDriverPhone')) {
+        showDriverEditMessage('Please enter a valid phone number.', 'error');
+        return;
+    }
+    if (!isPhoneValid('editNextOfKinPhone')) {
+        showDriverEditMessage('Please enter a valid next of kin phone number.', 'error');
+        return;
+    }
+    const licenseResult = ZM.license(payload.licenseNumber);
+    if (!licenseResult.valid) {
+        applyValidation(document.getElementById('editLicenseNumber'), document.getElementById('editLicenseValidationMessage'), licenseResult);
+        showDriverEditMessage(licenseResult.message, 'error');
         return;
     }
 
@@ -396,7 +460,8 @@ export function submitDriverRegistration() {
     const firstName            = document.getElementById('firstName').value.trim();
     const lastName             = document.getElementById('lastName').value.trim();
     const email                = document.getElementById('driverEmail').value.trim();
-    const phone                = document.getElementById('driverPhone').value.trim();
+    const phoneInputValue      = document.getElementById('driverPhone').value.trim();
+    const phone                = getE164('driverPhone');
     const nrcNumber            = document.getElementById('nrcNumber').value.trim();
     const licenseNumber        = document.getElementById('licenseNumber').value.trim();
     const licenseExpiry        = document.getElementById('licenseExpiry').value;
@@ -406,14 +471,36 @@ export function submitDriverRegistration() {
         : new Date().toISOString().split('T')[0];
     const nextOfKinName        = document.getElementById('nextOfKinName').value.trim();
     const nextOfKinRelationship = document.getElementById('nextOfKinRelationship').value;
-    const nextOfKinPhone       = document.getElementById('nextOfKinPhone').value.trim();
+    const nextOfKinPhoneInputValue = document.getElementById('nextOfKinPhone').value.trim();
+    const nextOfKinPhone       = getE164('nextOfKinPhone');
     const nextOfKinEmail       = document.getElementById('nextOfKinEmail').value.trim();
     const nrcFile              = document.getElementById('nrcUpload').files[0];
     const licenseFile          = document.getElementById('licenseUpload').files[0];
 
-    if (!firstName || !lastName || !email || !phone || !nrcNumber || !licenseNumber ||
-        !licenseExpiry || !nextOfKinName || !nextOfKinRelationship || !nextOfKinPhone) {
+    if (!firstName || !lastName || !email || !phoneInputValue || !nrcNumber || !licenseNumber ||
+        !licenseExpiry || !nextOfKinName || !nextOfKinRelationship || !nextOfKinPhoneInputValue) {
         showDriverModalMessage('Please fill in all required fields', 'error');
+        return;
+    }
+
+    const nrcResult = ZM.nrc(nrcNumber);
+    if (!nrcResult.valid) {
+        applyValidation(document.getElementById('nrcNumber'), document.getElementById('nrcValidationMessage'), nrcResult);
+        showDriverModalMessage(nrcResult.message, 'error');
+        return;
+    }
+    const licenseResult = ZM.license(licenseNumber);
+    if (!licenseResult.valid) {
+        applyValidation(document.getElementById('licenseNumber'), document.getElementById('licenseValidationMessage'), licenseResult);
+        showDriverModalMessage(licenseResult.message, 'error');
+        return;
+    }
+    if (!isPhoneValid('driverPhone')) {
+        showDriverModalMessage('Please enter a valid phone number.', 'error');
+        return;
+    }
+    if (!isPhoneValid('nextOfKinPhone')) {
+        showDriverModalMessage('Please enter a valid next of kin phone number.', 'error');
         return;
     }
 
@@ -468,8 +555,8 @@ export function openFireModal(driverName, score, shortages) {
     state.currentFireDriver = driverName;
     document.getElementById('fireDriverModal').classList.add('show');
     document.getElementById('fireDriverName').textContent        = driverName;
-    document.getElementById('fireDriverPerformance').textContent = score + '%';
-    document.getElementById('fireDriverShortages').textContent   = `K${shortages.toLocaleString()}`;
+    document.getElementById('fireDriverPerformance').textContent = (Number(score) || 0).toFixed(1) + '%';
+    document.getElementById('fireDriverShortages').textContent   = fmtZMW(shortages);
     document.getElementById('terminationReason').value           = 'Consistent Revenue Shortages';
     document.getElementById('customReasonWrapper').style.display = 'none';
     document.getElementById('customTerminationReason').value     = '';
@@ -637,4 +724,25 @@ export function updateDriversCount(count = null) {
     const value = count == null ? getFilteredDrivers(state.allDrivers).length : count;
     const badge = document.getElementById('driversCountBadge');
     if (badge) badge.textContent = value + ' record' + (value !== 1 ? 's' : '');
+}
+
+export function exportDrivers() {
+    if (!state.allDrivers.length) {
+        showToast('No data', 'No drivers to export.', 'info');
+        return;
+    }
+    const headers = ['Name', 'Email', 'Phone', 'NRC Number', 'License Number', 'License Expiry', 'Status', 'Performance Score', 'Total Shortages (ZMW)', 'Trip Count'];
+    const rows = state.allDrivers.map(d => [
+        d.name,
+        d.email,
+        d.phone,
+        d.nrcNumber,
+        d.licenseNumber,
+        d.licenseExpiry,
+        d.status,
+        d.performanceScore != null ? Number(d.performanceScore).toFixed(1) + '%' : 'N/A',
+        (d.totalShortages || 0).toFixed(2),
+        d.tripCount || 0
+    ]);
+    exportToCSV(`geedrive-drivers-${new Date().toISOString().split('T')[0]}.csv`, headers, rows);
 }

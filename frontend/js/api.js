@@ -294,10 +294,20 @@ export const FleetAPI = {
             status: 'success',
             logs: logs.map(log => ({
                 id: log.id,
-                createdAt: log.created_at,
-                driverName: log.driver_name,
-                car: log.car,
-                plateNumber: log.plate_number
+                createdAt:      log.created_at,
+                driverName:     log.driver_name,
+                car:            log.car,
+                plateNumber:    log.plate_number,
+                weekStartDate:  log.week_start_date,
+                year:           log.year,
+                startMileage:   log.start_mileage,
+                closingMileage: log.closing_mileage,
+                totalRevenue:   log.total_revenue,
+                expenseOnCar:   log.expense_on_car,
+                shortage:       log.shortage,
+                sparesBought:   log.spares_bought,
+                sparesCost:     log.spares_cost,
+                comments:       log.comments
             }))
         };
     },

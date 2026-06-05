@@ -15,7 +15,10 @@ import { FleetAPI } from './api.js';
 import { populateCarDropdown, populateDashboardCarFilter } from './dropdowns.js';
 import { notifyIfSystemError } from './notifications.js';
 import { pagination, state, setAllCars } from './state.js';
+import { ZM, applyValidation, attachLiveValidation } from './validation.js';
 import {
+    exportToCSV,
+    fmtZMW,
     friendlyError,
     renderPagination,
     setSubmitLoading,
@@ -30,17 +33,13 @@ export function setupCars() {
     if (carsEventsBound) return;
     carsEventsBound = true;
 
+    attachLiveValidation('carPlateReg', 'plateValidationMessage', ZM.plate);
     document.getElementById('carPlateReg')?.addEventListener('input', function(e) {
         const val = e.target.value.trim().toUpperCase();
         const msg = document.getElementById('plateValidationMessage');
-        if (!val) {
-            msg.className = 'validation-message';
-            msg.textContent = '';
-            return;
-        }
-        if (val.length > 7) {
-            msg.className = 'validation-message error';
-            msg.textContent = 'Plate cannot exceed 7 characters';
+        const format = ZM.plate(val);
+        if (!format.valid) {
+            applyValidation(e.target, msg, format);
             return;
         }
         const isDuplicate = state.allCars.some(car => car.plate === val);
@@ -159,9 +158,22 @@ export function populateCarsTable(cars) {
             <td><span class="status-badge ${badgeClass}">${car.status}</span></td>
             <td>${renderHealthPill(car.healthScore)}</td>
             <td>
-                <div class="action-buttons">
-                    <button class="btn-view btn-small" data-action="open-car-details" data-plate="${car.plate}">View</button>
-                    ${car.status === 'Active' ? `<button class="btn-edit btn-small" data-action="open-car-edit-modal" data-car-id="${car.id}">Edit</button>` : ''}
+                <div class="ctx-menu-wrapper">
+                    <button class="ctx-menu-btn" data-action="toggle-context-menu" title="More actions" aria-label="More actions" aria-haspopup="menu" aria-expanded="false">
+                        <i data-lucide="more-vertical" aria-hidden="true"></i>
+                    </button>
+                    <div class="ctx-menu" role="menu">
+                        <button class="ctx-item" data-action="open-car-details" data-plate="${car.plate}" role="menuitem">
+                            <i data-lucide="eye" aria-hidden="true"></i> View Details
+                        </button>
+                        ${car.status === 'Active' ? `
+                        <button class="ctx-item" data-action="open-car-edit-modal" data-car-id="${car.id}" role="menuitem">
+                            <i data-lucide="pencil" aria-hidden="true"></i> Edit Vehicle
+                        </button>
+                        <button class="ctx-item danger" data-action="open-decommission-modal" data-car-id="${car.id}" role="menuitem">
+                            <i data-lucide="truck" aria-hidden="true"></i> Decommission
+                        </button>` : ''}
+                    </div>
                 </div>
             </td>
         `;
@@ -171,6 +183,7 @@ export function populateCarsTable(cars) {
     updateCarsMetrics(cars);
     updateCarsCount(filteredCars.length);
     renderPagination('cars', pagination.cars.total, pagination.cars.page, pagination.cars.pageSize);
+    if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 function getFilteredCars(cars) {
@@ -306,8 +319,10 @@ export function submitCarRegistration() {
         return;
     }
 
-    if (carPlate.length > 7) {
-        showCarModalMessage('Plate number cannot exceed 7 characters', 'error');
+    const plateResult = ZM.plate(carPlate);
+    if (!plateResult.valid) {
+        applyValidation(document.getElementById('carPlateReg'), document.getElementById('plateValidationMessage'), plateResult);
+        showCarModalMessage(plateResult.message, 'error');
         return;
     }
 
@@ -372,11 +387,8 @@ export function openCarDetailsModal(plate) {
 
     const weeklyMileage = state.filteredWeeklyMileage?.[car.plate] || 0;
     const healthScore   = car.healthScore || 0;
-    const revenue  = (car.totalRevenue  || 0).toLocaleString(undefined, { minimumFractionDigits: 2 });
-    const expenses = (car.totalExpenses || 0).toLocaleString(undefined, { minimumFractionDigits: 2 });
-
-    document.getElementById('detailsRevenue').textContent  = `K${revenue}`;
-    document.getElementById('detailsExpenses').textContent = `K${expenses}`;
+    document.getElementById('detailsRevenue').textContent  = fmtZMW(car.totalRevenue || 0);
+    document.getElementById('detailsExpenses').textContent = fmtZMW(car.totalExpenses || 0);
     document.getElementById('detailsTrips').textContent    = car.totalTrips || 0;
 
     // Health bar
@@ -419,7 +431,11 @@ export function closeDetailsModal() {
 }
 
 export function openDecommissionModal(car) {
+    if (typeof car === 'string' || typeof car === 'number') {
+        car = state.allCars.find(c => String(c.id) === String(car));
+    }
     if (!car) return;
+    state.currentViewCar = car;
     document.getElementById('decommissionCarPlate').textContent = car.plate;
     document.getElementById('decommissionReason').value = '';
     document.getElementById('decommissionFinalMileage').value = '';
@@ -446,7 +462,7 @@ export function confirmDecommissionCar() {
     btn.disabled = true;
     btn.textContent = 'Processing…';
 
-    FleetAPI.decommissionCar(car.id, { reason, finalMileage, finalRevenue })
+    FleetAPI.decommissionCar(car.id, { reason, finalMileage, totalRevenueAtDecommission: finalRevenue })
         .then(result => {
             btn.disabled = false;
             btn.textContent = 'Confirm Decommission';
@@ -492,6 +508,8 @@ export function setCarsTypeFilter(type, el) {
     if (el) el.classList.add('active-filter');
     const badge = document.getElementById('carsFilterBadge');
     if (badge) badge.style.display = (state.carsFilterStatus !== 'all' || type !== 'all') ? 'inline-flex' : 'none';
+    const typeSelect = document.getElementById('carsTypeSelect');
+    if (typeSelect) typeSelect.value = type;
     document.getElementById('carsFilterDropdown')?.classList.remove('open');
     populateCarsTable(state.allCars);
 }
@@ -507,4 +525,24 @@ export function updateCarsCount(count = null) {
     const value = count == null ? getFilteredCars(state.allCars).length : count;
     const badge = document.getElementById('carsCountBadge');
     if (badge) badge.textContent = value + ' record' + (value !== 1 ? 's' : '');
+}
+
+export function exportCars() {
+    if (!state.allCars.length) {
+        showToast('No data', 'No vehicles to export.', 'info');
+        return;
+    }
+    const headers = ['Plate', 'Make', 'Model', 'Type', 'Capacity', 'Status', 'Last Serviced', 'Health Score', 'Service Due'];
+    const rows = state.allCars.map(c => [
+        c.plate,
+        c.make,
+        c.model,
+        c.vehicleType,
+        c.capacity,
+        c.status,
+        c.lastServiced || '',
+        (c.healthScore || 0).toFixed(1) + '%',
+        c.needsService ? 'Yes' : 'No'
+    ]);
+    exportToCSV(`geedrive-vehicles-${new Date().toISOString().split('T')[0]}.csv`, headers, rows);
 }

@@ -23,7 +23,7 @@
 import { FleetAPI } from './api.js';
 import { notifyIfSystemError } from './notifications.js';
 import { state } from './state.js';
-import { friendlyError, showTableError, showTableSkeleton } from './utils.js';
+import { fmtZMW, friendlyError, showTableError, showTableSkeleton } from './utils.js';
 
 export function loadDashboardData() {
     showTableSkeleton('#dashboardComparisonTable tbody', 6);
@@ -60,9 +60,9 @@ export function loadDashboardData() {
 export function updateDashboardCards(dash) {
     if (!dash) return;
     document.getElementById('dashTotalMileage').textContent  = `${(dash.totalMileage  || 0).toLocaleString()} km`;
-    document.getElementById('dashTotalRevenue').textContent  = `K${(dash.totalRevenue  || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
-    document.getElementById('dashTotalExpenses').textContent = `K${(dash.totalExpenses || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
-    document.getElementById('dashNetProfit').textContent     = `K${(dash.netProfit     || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+    document.getElementById('dashTotalRevenue').textContent  = fmtZMW(dash.totalRevenue || 0);
+    document.getElementById('dashTotalExpenses').textContent = fmtZMW(dash.totalExpenses || 0);
+    document.getElementById('dashNetProfit').textContent     = fmtZMW(dash.netProfit || 0);
 }
 
 export function populateDashboardTable(carsAnalysis) {
@@ -73,6 +73,7 @@ export function populateDashboardTable(carsAnalysis) {
         // CHANGE: class="empty-state" instead of ad-hoc inline style
         // (style guide §Data Table: empty state pattern)
         tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No active operational history logged.</td></tr>';
+        updateDashboardCount(0);
         return;
     }
 
@@ -99,18 +100,19 @@ export function populateDashboardTable(carsAnalysis) {
                      (style guide §Badges & Status: plate-badge chip pattern) -->
                 <span class="plate-badge">${car.plate}</span>
             </td>
-            <td>K${car.revenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-            <td>K${car.expenses.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+            <td>${fmtZMW(car.revenue)}</td>
+            <td>${fmtZMW(car.expenses)}</td>
             <!-- CHANGE: var(--success) / var(--danger) aliases still resolve via :root
                  token map; font-weight:600 preserved as inline since it is data-driven -->
             <td style="font-weight:600; color:${car.profit >= 0 ? 'var(--success)' : 'var(--danger)'}">
-                K${car.profit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                ${fmtZMW(car.profit)}
             </td>
             <td>${profitMargin}%</td>
             <td>${serviceBadge}</td>
         `;
         tbody.appendChild(row);
     });
+    updateDashboardCount(carsAnalysis.length);
 }
 
 export function filterDashboardByCar() {
@@ -127,4 +129,9 @@ export function filterDashboardByCar() {
             }
         })
         .catch(error => console.error('Error applying dashboard filter:', error));
+}
+
+function updateDashboardCount(count) {
+    const badge = document.getElementById('dashboardCountBadge');
+    if (badge) badge.textContent = count + ' record' + (count !== 1 ? 's' : '');
 }
