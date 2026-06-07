@@ -1,7 +1,7 @@
 # api/config.py
 from typing import List
-from pydantic import HttpUrl, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import HttpUrl, field_validator # pyright: ignore[reportMissingImports]
+from pydantic_settings import BaseSettings, SettingsConfigDict # pyright: ignore[reportMissingImports]
 
 
 class Settings(BaseSettings):
@@ -21,6 +21,7 @@ class Settings(BaseSettings):
         "http://127.0.0.1:5173",
         "http://localhost:8000",
         "http://127.0.0.1:8000",
+        "https://keinny.github.io/geedrive",
         "https://geedrive.onrender.com",
     ]
 
