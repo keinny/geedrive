@@ -3,6 +3,7 @@
 from fastapi import HTTPException, Security, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from api.config import settings
+from api.sessions import _session_tokens
 
 security = HTTPBearer()
 
@@ -15,7 +16,6 @@ def verify_api_key(
     Rotate FLEET_API_KEY in the environment and redeploy to invalidate
     all existing sessions without a code change.
     """
-    from api.main import _session_tokens
     token = credentials.credentials
     if token == settings.FLEET_API_KEY or token in _session_tokens:
         return token

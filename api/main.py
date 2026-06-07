@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from api.auth import verify_api_key
 from api.config import settings
+from api.sessions import _session_tokens
 from api.database import get_supabase
 from api.repositories.analytics_repo import AnalyticsRepository
 from api.routers import cars, drivers, logs
@@ -25,7 +26,6 @@ app = FastAPI(
 
 # ── Session ─────────────────────────────────────────────────────────────────────
 # In-memory session tokens (fine for a single-instance deployment)
-_session_tokens: set[str] = set()
 
 @app.post("/session", include_in_schema=False)
 def create_session():
