@@ -1,5 +1,5 @@
 # api/main.py
-
+import secrets
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -21,6 +21,21 @@ app = FastAPI(
         "All endpoints except /health require a Bearer token."
     ),
 )
+
+
+# ── Session ─────────────────────────────────────────────────────────────────────
+# In-memory session tokens (fine for a single-instance deployment)
+_session_tokens: set[str] = set()
+
+@app.post("/session", include_in_schema=False)
+def create_session():
+    """
+    Issues a short-lived opaque token. The frontend calls this once on load.
+    The real FLEET_API_KEY never leaves the server.
+    """
+    token = secrets.token_hex(32)
+    _session_tokens.add(token)
+    return {"token": token}
 
 # ── CORS ─────────────────────────────────────────────────────────────────────
 # Fix: allow_credentials=True is incompatible with allow_origins=["*"].
