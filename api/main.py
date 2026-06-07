@@ -1,6 +1,8 @@
 # api/main.py
 import secrets
-from fastapi import FastAPI, Depends
+from datetime import datetime, timezone
+from supabase import Client
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.auth import verify_api_key
@@ -79,6 +81,25 @@ def get_dashboard_summary(db=Depends(get_supabase)):
 def health():
     return {"status": "ok"}
 
+@app.get("/keepalive")
+async def keepalive(
+    db: Client = Depends(get_supabase),
+):
+    try:
+        db.table("health") \
+            .update(
+                {"last_ping": datetime.now(timezone.utc).isoformat()}
+            ) \
+            .eq("id", 1) \
+            .execute()
+
+        return {"status": "ok"}
+
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Keepalive failed: {exc}",
+        )
 
 @app.get("/debug-cors")
 def debug_cors():
