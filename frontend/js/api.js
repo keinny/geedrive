@@ -51,7 +51,7 @@ export const FleetAPI = {
     async _patchFormData(path, formData) {
         const res = await fetch(FLEET_API_URL + path, {
             method: 'PATCH',
-            headers: { 'Authorization': 'Bearer ' + FLEET_API_KEY },
+            headers: await this._headers(),
             body: formData
         });
         if (!res.ok) throw new Error('API error ' + res.status + ': ' + await res.text());
@@ -241,7 +241,7 @@ export const FleetAPI = {
         form.append('license_file', licenseFile);
         const res = await fetch(FLEET_API_URL + '/drivers', {
             method: 'POST',
-            headers: { 'Authorization': 'Bearer ' + FLEET_API_KEY },
+            headers: await this._headers(),
             body: form
         });
         if (!res.ok) {
