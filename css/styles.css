@@ -2572,11 +2572,49 @@ div#mileageStatContainer.review    { border-color: rgba(180,83,9,0.35);  backgro
     /* Filter bar */
     .filter-bar { flex-direction: column; align-items: stretch; gap: 8px; }
     .filter-bar select { width: 100%; }
+
+    /* Show the topbar hamburger button on mobile */
+    .topbar-nav-trigger { display: flex; }
+
+    /* Hide the sidebar's own toggle button — not needed when sidebar is off-canvas */
+    .toggle-nav-btn { display: none; }
 }
 
 /* ════════════════════════════════════════════════════════════════
    ADDITIONS – items referenced in index.html but needing explicit rules
    ════════════════════════════════════════════════════════════════ */
+
+/* ── Mobile hamburger button ─────────────────────────────────────
+   Hidden on desktop; shown only on mobile where the sidebar is off-canvas */
+.topbar-nav-trigger {
+    display: none;
+    background: transparent;
+    border: 0.5px solid var(--gd-dark-border);
+    color: var(--text-secondary);
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    flex-shrink: 0;
+    border-radius: var(--border-radius-md);
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.1s, color 0.1s;
+    margin-right: 12px;
+}
+
+.topbar-nav-trigger svg,
+.topbar-nav-trigger i {
+    width: 18px;
+    height: 18px;
+    display: block;
+    pointer-events: none;
+}
+
+.topbar-nav-trigger:hover {
+    background: var(--gd-dark-elevated);
+    color: var(--text-heading);
+}
 
 /* Wide modal (weekly log) – replaces inline max-width:1040px */
 .modal-content--wide { max-width: 1040px; }
