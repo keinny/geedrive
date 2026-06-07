@@ -4,13 +4,20 @@ import { _cache } from './cache.js';
 
 
 let _sessionToken = null;
+let _sessionPromise = null;
 
 async function getToken() {
     if (_sessionToken) return _sessionToken;
-    const res = await fetch(FLEET_API_URL + '/session', { method: 'POST' });
-    const data = await res.json();
-    _sessionToken = data.token;
-    return _sessionToken;
+    if (!_sessionPromise) {
+        _sessionPromise = fetch(FLEET_API_URL + '/session', { method: 'POST' })
+            .then(res => res.json())
+            .then(data => {
+                _sessionToken = data.token;
+                _sessionPromise = null;
+                return _sessionToken;
+            });
+    }
+    return _sessionPromise;
 }
 
 
