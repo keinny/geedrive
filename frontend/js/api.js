@@ -1,16 +1,29 @@
 import { state } from './state.js';
-import { FLEET_API_URL, FLEET_API_KEY } from './config.js';
+import { FLEET_API_URL } from './config.js';
 import { _cache } from './cache.js';
 
+
+let _sessionToken = null;
+
+async function getToken() {
+    if (_sessionToken) return _sessionToken;
+    const res = await fetch(FLEET_API_URL + '/session', { method: 'POST' });
+    const data = await res.json();
+    _sessionToken = data.token;
+    return _sessionToken;
+}
+
+
 export const FleetAPI = {
-    _headers(withBody = false) {
-        const h = { 'Authorization': 'Bearer ' + FLEET_API_KEY };
+    async _headers(withBody = false) {
+        const token = await getToken();
+        const h = { 'Authorization': 'Bearer ' + token };
         if (withBody) h['Content-Type'] = 'application/json';
         return h;
     },
 
     async _get(path) {
-        const res = await fetch(FLEET_API_URL + path, { headers: this._headers() });
+        const res = await fetch(FLEET_API_URL + path, { headers: await this._headers() });
         if (!res.ok) throw new Error('API error ' + res.status + ': ' + await res.text());
         return res.json();
     },
@@ -18,7 +31,7 @@ export const FleetAPI = {
     async _post(path, body) {
         const res = await fetch(FLEET_API_URL + path, {
             method: 'POST',
-            headers: this._headers(true),
+            headers: await this._headers(true),
             body: JSON.stringify(body)
         });
         if (!res.ok) throw new Error('API error ' + res.status + ': ' + await res.text());
@@ -28,7 +41,7 @@ export const FleetAPI = {
     async _patch(path, body) {
         const res = await fetch(FLEET_API_URL + path, {
             method: 'PATCH',
-            headers: this._headers(true),
+            headers: await this._headers(true),
             body: JSON.stringify(body)
         });
         if (!res.ok) throw new Error('API error ' + res.status + ': ' + await res.text());
