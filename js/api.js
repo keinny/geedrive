@@ -108,6 +108,9 @@ export const FleetAPI = {
                     needsService: Boolean(stats.needs_service),
                     model: car.model || stats.model || 'N/A',
                     lastServiced: stats.last_serviced || car.last_serviced || null,
+                    totalRevenue:  stats.total_revenue  ?? 0,
+                    totalExpenses: stats.total_expenses ?? 0,
+                    totalTrips:    stats.trip_count     ?? 0,
                     
                 };
             })
