@@ -289,92 +289,95 @@ export function openLogDetailModal(logId) {
     }
 
     const dist = Math.max(0, (Number(log.closingMileage) || 0) - (Number(log.startMileage) || 0));
-    const net = (Number(log.totalRevenue) || 0) - (Number(log.expenseOnCar) || 0) - (Number(log.shortage) || 0) - (Number(log.sparesCost) || 0);
-    const netColor = net >= 0 ? 'var(--gd-success)' : 'var(--gd-danger)';
+    const net  = (Number(log.totalRevenue) || 0) - (Number(log.expenseOnCar) || 0) - (Number(log.shortage) || 0) - (Number(log.sparesCost) || 0);
 
     document.getElementById('logDetailModalTitle').textContent =
-        `Log - ${log.driverName || 'Unknown'} · ${log.plateNumber || ''}`;
+        `Log — ${log.driverName || 'Unknown'} · ${log.plateNumber || ''}`;
 
     document.getElementById('logDetailBody').innerHTML = `
-        <div class="log-detail-header">
-            <div class="log-detail-hero">
-                <div class="log-detail-hero-item">
-                    <span class="log-detail-label">Driver</span>
-                    <span class="log-detail-value">${esc(log.driverName || 'N/A')}</span>
-                </div>
-                <div class="log-detail-hero-item">
-                    <span class="log-detail-label">Vehicle</span>
-                    <span class="log-detail-value">${esc(log.car || 'N/A')}</span>
-                </div>
-                <div class="log-detail-hero-item">
-                    <span class="log-detail-label">Plate</span>
-                    <span class="plate-badge">${esc(log.plateNumber || 'N/A')}</span>
-                </div>
-                <div class="log-detail-hero-item">
-                    <span class="log-detail-label">Week Start</span>
-                    <span class="log-detail-value">${esc(log.weekStartDate || 'N/A')}</span>
-                </div>
-                <div class="log-detail-hero-item">
-                    <span class="log-detail-label">Submitted</span>
-                    <span class="log-detail-value">${log.createdAt ? new Date(log.createdAt).toLocaleString() : 'N/A'}</span>
-                </div>
+        <!-- Hero row -->
+        <div style="display:flex;flex-wrap:wrap;gap:10px 24px;padding:14px 16px;background:var(--gd-dark-elevated);border:0.5px solid var(--gd-dark-border);border-radius:10px;margin-bottom:20px;">
+            <div>
+                <div class="vpi-stat-label" style="margin-bottom:3px;">Driver</div>
+                <div style="font-size:14px;font-weight:600;color:var(--text-primary);">${esc(log.driverName || 'N/A')}</div>
+            </div>
+            <div>
+                <div class="vpi-stat-label" style="margin-bottom:3px;">Vehicle</div>
+                <div style="font-size:14px;font-weight:600;color:var(--text-primary);">${esc(log.car || 'N/A')}</div>
+            </div>
+            <div>
+                <div class="vpi-stat-label" style="margin-bottom:3px;">Plate</div>
+                <span class="plate-badge">${esc(log.plateNumber || 'N/A')}</span>
+            </div>
+            <div>
+                <div class="vpi-stat-label" style="margin-bottom:3px;">Week Start</div>
+                <div style="font-size:14px;font-weight:600;color:var(--text-primary);">${esc(log.weekStartDate || 'N/A')}</div>
+            </div>
+            <div>
+                <div class="vpi-stat-label" style="margin-bottom:3px;">Submitted</div>
+                <div style="font-size:14px;font-weight:600;color:var(--text-primary);">${log.createdAt ? new Date(log.createdAt).toLocaleString() : 'N/A'}</div>
             </div>
         </div>
-        <div class="log-detail-section">
-            <div class="log-detail-section-title"><i data-lucide="map-pin"></i> Mileage</div>
-            <div class="log-detail-grid-3">
-                <div class="log-detail-stat">
-                    <span class="log-detail-stat-label">Start Mileage</span>
-                    <span class="log-detail-stat-value">${(Number(log.startMileage) || 0).toLocaleString()} km</span>
+
+        <!-- Mileage -->
+        <div class="vpi-section-title"><i data-lucide="map-pin"></i> Mileage</div>
+        <div class="vpi-stats-grid" style="margin-bottom:20px;">
+            <div class="vpi-stat">
+                <div class="vpi-stat-top"><span class="vpi-stat-label">Start Mileage</span></div>
+                <div class="vpi-stat-value">${(Number(log.startMileage) || 0).toLocaleString()} <span style="font-size:12px;font-weight:400;color:var(--text-secondary);">km</span></div>
+                <div class="vpi-stat-bar"></div>
+            </div>
+            <div class="vpi-stat">
+                <div class="vpi-stat-top"><span class="vpi-stat-label">Closing Mileage</span></div>
+                <div class="vpi-stat-value">${(Number(log.closingMileage) || 0).toLocaleString()} <span style="font-size:12px;font-weight:400;color:var(--text-secondary);">km</span></div>
+                <div class="vpi-stat-bar"></div>
+            </div>
+            <div class="vpi-stat">
+                <div class="vpi-stat-top">
+                    <span class="vpi-stat-label">Distance Covered</span>
+                    ${dist > 450 ? '<span class="gd-badge badge-warning">Flagged</span>' : ''}
                 </div>
-                <div class="log-detail-stat">
-                    <span class="log-detail-stat-label">Closing Mileage</span>
-                    <span class="log-detail-stat-value">${(Number(log.closingMileage) || 0).toLocaleString()} km</span>
+                <div class="vpi-stat-value" style="color:${dist > 450 ? 'var(--gd-warning)' : 'var(--gd-success)'}">
+                    ${dist.toLocaleString()} <span style="font-size:12px;font-weight:400;color:var(--text-secondary);">km</span>
                 </div>
-                <div class="log-detail-stat">
-                    <span class="log-detail-stat-label">Distance Covered</span>
-                    <span class="log-detail-stat-value" style="color:${dist > 450 ? 'var(--gd-warning)' : 'var(--gd-success)'}">
-                        ${dist.toLocaleString()} km
-                        ${dist > 450 ? '<span class="badge-warning gd-badge" style="margin-left:6px;">Flagged</span>' : ''}
-                    </span>
-                </div>
+                <div class="vpi-stat-bar"></div>
             </div>
         </div>
-        <div class="log-detail-section">
-            <div class="log-detail-section-title"><i data-lucide="dollar-sign"></i> Financials</div>
-            <div class="log-detail-grid-4">
-                <div class="log-detail-stat">
-                    <span class="log-detail-stat-label">Total Revenue</span>
-                    <span class="log-detail-stat-value success">${fmtZMW(log.totalRevenue)}</span>
-                </div>
-                <div class="log-detail-stat">
-                    <span class="log-detail-stat-label">Car Expenses</span>
-                    <span class="log-detail-stat-value">${fmtZMW(log.expenseOnCar)}</span>
-                </div>
-                <div class="log-detail-stat">
-                    <span class="log-detail-stat-label">Spares Cost</span>
-                    <span class="log-detail-stat-value">${fmtZMW(log.sparesCost)}</span>
-                </div>
-                <div class="log-detail-stat">
-                    <span class="log-detail-stat-label">Shortage</span>
-                    <span class="log-detail-stat-value" style="color:${(Number(log.shortage) || 0) > 0 ? 'var(--gd-danger)' : 'inherit'}">${fmtZMW(log.shortage)}</span>
-                </div>
+
+        <!-- Financials -->
+        <div class="vpi-section-title"><i data-lucide="dollar-sign"></i> Financials</div>
+        <div class="performance-stats" style="margin-bottom:12px;">
+            <div class="stat-card">
+                <label>Total Revenue</label>
+                <span style="color:var(--gd-success);">${fmtZMW(log.totalRevenue)}</span>
             </div>
-            ${log.sparesBought ? `
-            <div class="log-detail-spares">
-                <span class="log-detail-label">Spares Bought:</span>
-                <span>${esc(log.sparesBought)}</span>
-            </div>` : ''}
-            <div class="log-detail-net">
-                <span class="log-detail-net-label">Net Income</span>
-                <span class="log-detail-net-value" style="color:${netColor}">${fmtZMW(net)}</span>
+            <div class="stat-card">
+                <label>Car Expenses</label>
+                <span>${fmtZMW(log.expenseOnCar)}</span>
+            </div>
+            <div class="stat-card">
+                <label>Spares Cost</label>
+                <span>${fmtZMW(log.sparesCost)}</span>
+            </div>
+            <div class="stat-card${(Number(log.shortage) || 0) > 0 ? ' danger' : ''}">
+                <label>Shortage</label>
+                <span>${fmtZMW(log.shortage)}</span>
             </div>
         </div>
-        ${log.comments ? `
-        <div class="log-detail-section">
-            <div class="log-detail-section-title"><i data-lucide="message-square"></i> Comments</div>
-            <p class="log-detail-comments">${esc(log.comments)}</p>
+        ${log.sparesBought ? `
+        <div style="padding:10px 14px;background:var(--gd-dark-elevated);border:0.5px solid var(--gd-dark-border);border-radius:8px;font-size:13px;color:var(--text-primary);margin-bottom:12px;">
+            <span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-secondary);margin-right:8px;">Spares Bought</span>${esc(log.sparesBought)}
         </div>` : ''}
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:var(--gd-dark-surface);border:0.5px solid var(--gd-dark-border-strong);border-radius:10px;margin-bottom:${log.comments ? '20px' : '0'};">
+            <span style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-secondary);">Net Income</span>
+            <span style="font-family:var(--gd-font-display);font-size:28px;font-weight:800;line-height:1;color:${net >= 0 ? 'var(--gd-success)' : 'var(--gd-danger)'};">${fmtZMW(net)}</span>
+        </div>
+
+        <!-- Comments -->
+        ${log.comments ? `
+        <div class="vpi-section-title"><i data-lucide="message-square"></i> Comments</div>
+        <p style="margin:0;padding:12px 16px;background:var(--gd-dark-elevated);border:0.5px solid var(--gd-dark-border);border-radius:8px;font-size:13px;color:var(--text-primary);line-height:1.6;white-space:pre-wrap;">${esc(log.comments)}</p>
+        ` : ''}
     `;
 
     document.getElementById('logDetailModal').classList.add('show');
