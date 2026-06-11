@@ -47,15 +47,15 @@ class LogRepository:
         )
         return res.data[0]
 
+    # log_repo.py
     def list_entries(self) -> list[dict]:
-        """
-        Returns weekly log display rows newest first, including the joined
-        vehicle and driver labels needed by the frontend table.
-        """
         res = (
             self._db.table("weekly_logs")
             .select(
-                "id, created_at, "
+                "id, created_at, week_start_date, year, "
+                "start_mileage, closing_mileage, total_mileage, "
+                "total_revenue, expense_on_car, shortage, "
+                "spares_bought, spares_cost, net_revenue, comments, "
                 "drivers(first_name, last_name), "
                 "cars(make, model, plate_number)"
             )
@@ -74,10 +74,22 @@ class LogRepository:
                 part for part in [car.get("make"), car.get("model")] if part
             ).strip()
             rows.append({
-                "id": row["id"],
-                "created_at": row["created_at"],
-                "driver_name": driver_name or "Unknown driver",
-                "car": car_name or "Unknown vehicle",
-                "plate_number": car.get("plate_number") or "N/A",
+                "id":              row["id"],
+                "created_at":      row["created_at"],
+                "driver_name":     driver_name or "Unknown driver",
+                "car":             car_name or "Unknown vehicle",
+                "plate_number":    car.get("plate_number") or "N/A",
+                "week_start_date": row.get("week_start_date"),
+                "year":            row.get("year"),
+                "start_mileage":   row.get("start_mileage"),
+                "closing_mileage": row.get("closing_mileage"),
+                "total_mileage":   row.get("total_mileage"),
+                "total_revenue":   row.get("total_revenue"),
+                "expense_on_car":  row.get("expense_on_car"),
+                "shortage":        row.get("shortage"),
+                "spares_bought":   row.get("spares_bought"),
+                "spares_cost":     row.get("spares_cost"),
+                "net_revenue":     row.get("net_revenue"),
+                "comments":        row.get("comments"),
             })
         return rows
