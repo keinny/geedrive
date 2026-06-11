@@ -43,24 +43,24 @@ class WeeklyLogCreate(BaseModel):
 # they are read-only and should not appear as input fields on the create schema.
 class WeeklyLogResponse(BaseModel):
     id: UUID
-    car_id: UUID
-    driver_id: UUID
-    week_start_date: date
-    year: int
-    start_mileage: float
-    closing_mileage: float
-    total_mileage: float        # DB GENERATED ALWAYS
-    total_revenue: float
-    shortage: float
-    expense_on_car: float
-    net_revenue: float          # DB GENERATED ALWAYS
-    spares_bought: Optional[str]
-    spares_cost: float
-    comments: Optional[str]
     created_at: datetime
+    driver_name: str
+    car: str
+    plate_number: str
+    week_start_date: Optional[date]
+    year: Optional[int]
+    start_mileage: Optional[float]
+    closing_mileage: Optional[float]
+    total_mileage: Optional[float]
+    total_revenue: Optional[float]
+    expense_on_car: Optional[float]
+    shortage: Optional[float]
+    spares_bought: Optional[str]
+    spares_cost: Optional[float]
+    net_revenue: Optional[float]
+    comments: Optional[str]
 
     model_config = {"from_attributes": True}
-
 
 class WeeklyLogListEntry(BaseModel):
     id: UUID
