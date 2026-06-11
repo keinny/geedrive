@@ -60,7 +60,7 @@ def submit_weekly_log(
     return created
 
 
-@router.get("", response_model=List[WeeklyLogListEntry])
+@router.get("", response_model=List[WeeklyLogResponse])
 def list_weekly_logs(repo: LogRepository = Depends(get_log_repo)):
     """Returns weekly log table entries, newest first."""
     return repo.list_entries()
