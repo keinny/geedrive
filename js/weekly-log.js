@@ -337,7 +337,7 @@ export function openLogDetailModal(logId) {
                     <span class="vpi-stat-label">Distance Covered</span>
                     ${dist > 450 ? '<span class="gd-badge badge-warning">Flagged</span>' : ''}
                 </div>
-                <div class="vpi-stat-value" style="color:${dist > 450 ? 'var(--gd-warning)' : 'var(--gd-success)'}">
+                <div class="vpi-stat-value" style="color:${dist > 450 ? 'var(--gd-warning)' : 'var(--gd-success)'};">
                     ${dist.toLocaleString()} <span style="font-size:12px;font-weight:400;color:var(--text-secondary);">km</span>
                 </div>
                 <div class="vpi-stat-bar"></div>
