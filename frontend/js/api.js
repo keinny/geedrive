@@ -95,6 +95,7 @@ export const FleetAPI = {
             analytics.map(item => [String(item.plate_number).toUpperCase(), item])
         );
 
+
         return {
             status: 'success',
             cars: carsResponse.cars.map(car => {
@@ -105,7 +106,9 @@ export const FleetAPI = {
                     vehicleType: stats.vehicle_type || car.vehicle_type || 'N/A',
                     healthScore: typeof stats.health_score === 'number' ? stats.health_score : (car.healthScore || 0),
                     needsService: Boolean(stats.needs_service),
-                    model: car.model || stats.model || 'N/A'
+                    model: car.model || stats.model || 'N/A',
+                    lastServiced: stats.last_serviced || car.last_serviced || null,
+                    
                 };
             })
         };
