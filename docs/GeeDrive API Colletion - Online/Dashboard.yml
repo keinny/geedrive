@@ -1,0 +1,18 @@
+info:
+  name: Dashboard
+  type: http
+  seq: 4
+
+http:
+  method: GET
+  url: https://geedrive.onrender.com/dashboard
+  headers:
+    - name: Authorization
+      value: Bearer {{FLEET_API_KEY}}
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
