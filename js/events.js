@@ -218,18 +218,55 @@ function handleDocumentChange(event) {
 export function closeAllContextMenus() {
     document.querySelectorAll('.ctx-menu.open').forEach(menu => {
         menu.classList.remove('open');
-        const trigger = menu.parentElement?.querySelector('.ctx-menu-btn');
+
+        // If this menu was portaled out to <body> to escape an
+        // overflow-scrolling container (iOS fixed-position trap),
+        // move it back to its original wrapper now that it's closed.
+        const homeWrapperId = menu.dataset.homeWrapperId;
+        if (homeWrapperId) {
+            const homeWrapper = document.getElementById(homeWrapperId);
+            if (homeWrapper) homeWrapper.appendChild(menu);
+            delete menu.dataset.homeWrapperId;
+        }
+
+        // Clear inline positioning applied while portaled
+        menu.style.top = '';
+        menu.style.left = '';
+        menu.style.right = '';
+        menu.style.bottom = '';
+
+        const trigger = menu.parentElement?.querySelector('.ctx-menu-btn')
+            ?? document.querySelector(`[aria-controls="${menu.id}"]`);
         if (trigger) trigger.setAttribute('aria-expanded', 'false');
     });
     document.getElementById('ctxBackdrop')?.classList.remove('active');
 }
 
+let ctxWrapperCounter = 0;
+
 function toggleContextMenu(trigger) {
-    const menu = trigger.parentElement?.querySelector('.ctx-menu');
-    if (!menu) return;
+    const wrapper = trigger.parentElement;
+    const menu = wrapper?.querySelector('.ctx-menu');
+    if (!menu || !wrapper) return;
     const isOpen = menu.classList.contains('open');
     closeAllContextMenus();
     if (!isOpen) {
+        // Give the wrapper a stable id so the menu can find its way
+        // back home when closed.
+        if (!wrapper.id) wrapper.id = `ctxWrapper-${++ctxWrapperCounter}`;
+        menu.dataset.homeWrapperId = wrapper.id;
+
+        // Move the menu to <body>. This is required on mobile/iOS:
+        // .ctx-menu uses position:fixed, but if it stays inside
+        // .table-scroll-body (which has -webkit-overflow-scrolling:
+        // touch), iOS traps fixed-position descendants inside that
+        // scroller's own compositing layer. The full-screen
+        // .ctx-backdrop (backdrop-filter: blur) then blurs that whole
+        // layer, including the trapped menu. Moving the menu to <body>
+        // makes it a true sibling of .ctx-backdrop, outside the blurred
+        // layer, so only the page behind it gets blurred.
+        document.body.appendChild(menu);
+
         menu.classList.add('open');
         trigger.setAttribute('aria-expanded', 'true');
         document.getElementById('ctxBackdrop')?.classList.add('active');
