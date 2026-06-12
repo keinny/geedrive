@@ -1446,6 +1446,18 @@ textarea {
     background: var(--gd-dark-surface);
     box-shadow: 0 18px 42px rgba(0,0,0,0.45);
     flex-direction: column;
+
+    /* Fix: iOS/WebKit can blur fixed-position siblings of an element
+       with backdrop-filter when they share a compositing layer, even
+       with a higher z-index. Promote this menu to its own layer and
+       explicitly strip any filter so it stays sharp. */
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    filter: none;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    will-change: transform;
+    isolation: isolate;
 }
 
 .ctx-menu.open {
